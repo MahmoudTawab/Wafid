@@ -1,0 +1,182 @@
+/* 
+  Localizable.strings
+  JobFinder
+
+  Created by almedadsoft on 13/01/2025.
+  
+*/
+
+
+"Done" = "موافق";
+
+//FirstScreen
+
+"The Best Portal job of this century" = "أفضل بوابة عمل في هذا القرن";
+"Language" = "اللغة";
+"Continue" = "استمر";
+
+//LoginScreen
+
+"Sign in to your account" = "تسجيل الدخول إلى حسابك";
+"E-mail" = "البريد الإلكتروني";
+"Enter your email" = "أدخل بريدك الإلكتروني";
+"Password" = "كلمة المرور";
+"Enter password" = "أدخل كلمة المرور";
+"Remember me" = "تذكرني";
+"Forgot the password?" = "نسيت كلمة المرور؟";
+"Login" = "تسجيل الدخول";
+"Don’t have an account?" = "ليس لديك حساب؟";
+"Sign up" = "سجل الآن";
+
+
+//CongratsScreen
+"Congrats!" = "تهانينا!";
+"Your account is ready to use" = "تم تجهيز حسابك للاستخدام";
+"Go to homepage" = "الانتقال إلى الصفحة الرئيسية";
+
+//CongratsScreen
+"Payment" = "الدفع";
+"Master Card" = "ماستر كارد";
+"Card Number" = "رقم البطاقة";
+"1234 5678 1234 5678" = "1234 5678 1234 5678";
+"Name" = "الاسم";
+"Expiration Date" = "تاريخ الانتهاء";
+"MM/YY" = "شهر/سنة";
+"CVV" = "CVV";
+"123" = "123";
+"Continue" = "متابعة";
+"You must enter 16 digits" = "يجب إدخال 16 رقم";
+"You must enter a valid name" = "يجب إدخال اسم صحيح";
+"Invalid date" = "تاريخ غير صالح";
+"You must enter 3 numbers" = "يجب إدخال 3 أرقام";
+"Credit" = "ائتمان";
+"Card Holder" = "صاحب البطاقة";
+"Sam Louis" = "سام لويس";
+"Expires" = "ينتهي";
+"07/29" = "07/29";
+"215" = "215";
+
+
+//ForgotPassword
+"Forgot Password" = "نسيت كلمة المرور";
+"If you need help resetting your password We can help by sending you a link to reset it." = "إذا كنت بحاجة إلى مساعدة في إعادة تعيين كلمة المرور الخاصة بك، يمكننا المساعدة عن طريق إرسال رابط لإعادة تعيينها.";
+"E-mail" = "البريد الإلكتروني";
+"Enter your email" = "أدخل بريدك الإلكتروني";
+"Password" = "كلمة المرور";
+"Enter password" = "أدخل كلمة المرور";
+"Confirm New Password" = "تأكيد كلمة المرور الجديدة";
+"Enter Confirm password" = "أدخل تأكيد كلمة المرور";
+"Continue" = "متابعة";
+
+
+//LanguageSelectionView
+"Language" = "اللغة";
+"English" = "الإنجليزية";
+"Arabic" = "العربية";
+
+
+//OTPVerificationView
+"Forgot Password" = "نسيت كلمة المرور";
+"Please enter the 4-digit code sent to you on E-mail" = "الرجاء إدخال الرمز المكون من 4 أرقام المرسل إليك على البريد الإلكتروني";
+"Invalid OTP code" = "رمز OTP غير صحيح";
+"Resend Code" = "إعادة إرسال الرمز";
+"Resend code in" = "إعادة إرسال الرمز خلال";
+"s" = "ثانية";
+"Verify" = "تحقق";
+
+
+//PaymentError
+"Payment" = "الدفع";
+"We couldn't proceed your payment" = "لم نتمكن من معالجة دفعتك";
+"your payment" = "دفعتك";
+"Please, change your payment method or try again" = "الرجاء تغيير طريقة الدفع أو المحاولة مرة أخرى";
+"Try Again" = "حاول مرة أخرى";
+"Change" = "تغيير";
+
+
+//PaymentMethodView
+"subscription" = "الاشتراك";
+"Choose your Payment Method" = "اختر طريقة الدفع الخاصة بك";
+"PayPal" = "باي بال";
+"Master Card" = "ماستر كارد";
+"Visa Card" = "فيزا كارد";
+"ApplePay" = "أبل باي";
+"Continue" = "متابعة";
+
+
+//PaymentSuccessful
+"Payment" = "الدفع";
+"Payment Successful" = "تم الدفع بنجاح";
+"Thank you for your purchase." = "شكرًا لك على شرائك.";
+"Continue" = "متابعة";
+
+
+//SignUp
+"Create an Account" = "إنشاء حساب";
+"Full name" = "الاسم الكامل";
+"Enter your full name" = "أدخل اسمك الكامل";
+"E-mail" = "البريد الإلكتروني";
+"Enter your email" = "أدخل بريدك الإلكتروني";
+"Phone" = "الهاتف";
+"Enter your phone number" = "أدخل رقم هاتفك";
+"Continue" = "متابعة";
+"You already have an account?" = "هل لديك حساب بالفعل؟";
+"Sign in" = "تسجيل الدخول";
+
+
+//ProfileScreen
+"Profile" = "الملف الشخصي";
+"Upload Photo Profile" = "تحميل صورة الملف الشخصي";
+"Passport Number" = "رقم الجواز";
+"Passport photo" = "صورة الجواز";
+"Issuance Date" = "تاريخ الإصدار";
+"Expiry Date" = "تاريخ الانتهاء";
+"Number of the nearest emergency boat" = "رقم أقرب قارب طوارئ";
+"Date of birth" = "تاريخ الميلاد";
+"Place of birth" = "مكان الميلاد";
+"Experience Years" = "سنوات الخبرة";
+"Educational Qualification" = "المؤهل التعليمي";
+"certificates or qualifications" = "شهادات أو مؤهلات";
+"Occupation" = "المهنة";
+"Password" = "كلمة المرور";
+"Enter password" = "أدخل كلمة المرور";
+"Confirm New Password" = "تأكيد كلمة المرور الجديدة";
+"Enter Confirm password" = "أدخل تأكيد كلمة المرور";
+"Sign Up" = "التسجيل";
+"Are You sure" = "هل أنت متأكد؟";
+"You want to delete" = "هل تريد حذف";
+"Cancel" = "إلغاء";
+"Yes, Remove" = "نعم، احذف";
+
+
+//PricingPlanView
+"Pricing Plan" = "خطة التسعير";
+"Choose your subscription plan" = "اختر خطة الاشتراك الخاصة بك";
+"And get a free 7-day trial" = "واحصل على تجربة مجانية لمدة 7 أيام";
+"Exclusive Plan" = "الخطة الحصرية";
+"Create 10 Jobs" = "إنشاء 10 وظائف";
+"2 Invitation" = "2 دعوة";
+"20 Resume / CV" = "20 سيرة ذاتية";
+"20 User" = "20 مستخدم";
+"Business Plan" = "الخطة التجارية";
+"Create 20 Jobs" = "إنشاء 20 وظيفة";
+"5 Invitation" = "5 دعوات";
+"40 Resume / CV" = "40 سيرة ذاتية";
+"40 User" = "40 مستخدم";
+"Vip Plan" = "الخطة المميزة";
+"Create 30 Jobs" = "إنشاء 30 وظيفة";
+"10 Invitation" = "10 دعوات";
+"60 Resume / CV" = "60 سيرة ذاتية";
+"60 User" = "60 مستخدم";
+"Subscribe now" = "اشترك الآن";
+
+
+//SettingsView
+"Settings" = "الإعدادات";
+"Notification" = "الإشعار";
+"Security" = "الأمان";
+"Language" = "اللغة";
+"Help" = "المساعدة";
+"Logout" = "تسجيل الخروج";
+"Yes, Logout" = "نعم، تسجيل الخروج";
+"Are you sure want to logout?" = "هل أنت متأكد أنك تريد تسجيل الخروج؟";

@@ -1,0 +1,179 @@
+/* 
+  Localizable.strings
+  JobFinder
+
+  Created by almedadsoft on 13/01/2025.
+  
+*/
+
+"Done" = "Done";
+
+//FirstScreen
+"The Best Portal job of this century" = "The Best Portal job of this century";
+"Language" = "Language";
+"Continue" = "Continue";
+
+//LoginScreen
+"Sign in to your account" = "Sign in to your account";
+"E-mail" = "E-mail";
+"Enter your email" = "Enter your email";
+"Password" = "Password";
+"Enter password" = "Enter password";
+"Remember me" = "Remember me";
+"Forgot the password?" = "Forgot the password?";
+"Login" = "Login";
+"Don’t have an account?" = "Don’t have an account?";
+"Sign up" = "Sign up";
+
+//CongratsScreen
+"Congrats!" = "Congrats!";
+"Your account is ready to use" = "Your account is ready to use";
+"Go to homepage" = "Go to homepage";
+
+//CongratsScreen
+"Payment" = "Payment";
+"Master Card" = "Master Card";
+"Card Number" = "Card Number";
+"1234 5678 1234 5678" = "1234 5678 1234 5678";
+"Name" = "Name";
+"Expiration Date" = "Expiration Date";
+"MM/YY" = "MM/YY";
+"CVV" = "CVV";
+"123" = "123";
+"Continue" = "Continue";
+"You must enter 16 digits" = "You must enter 16 digits";
+"You must enter a valid name" = "You must enter a valid name";
+"Invalid date" = "Invalid date";
+"You must enter 3 numbers" = "You must enter 3 numbers";
+"Credit" = "Credit";
+"Card Holder" = "Card Holder";
+"Sam Louis" = "Sam Louis";
+"Expires" = "Expires";
+"07/29" = "07/29";
+"215" = "215";
+
+
+//ForgotPassword
+"Forgot Password" = "Forgot Password";
+"If you need help resetting your password We can help by sending you a link to reset it." = "If you need help resetting your password We can help by sending you a link to reset it.";
+"E-mail" = "E-mail";
+"Enter your email" = "Enter your email";
+"Password" = "Password";
+"Enter password" = "Enter password";
+"Confirm New Password" = "Confirm New Password";
+"Enter Confirm password" = "Enter Confirm password";
+"Continue" = "Continue";
+
+
+//LanguageSelectionView
+"Language" = "Language";
+"English" = "English";
+"Arabic" = "Arabic";
+
+
+//OTPVerificationView
+"Forgot Password" = "Forgot Password";
+"Please enter the 4-digit code sent to you on E-mail" = "Please enter the 4-digit code sent to you on E-mail";
+"Invalid OTP code" = "Invalid OTP code";
+"Resend Code" = "Resend Code";
+"Resend code in" = "Resend code in";
+"s" = "s";
+"Verify" = "Verify";
+
+
+//PaymentError
+"Payment" = "Payment";
+"We couldn't proceed your payment" = "We couldn't proceed your payment";
+"your payment" = "your payment";
+"Please, change your payment method or try again" = "Please, change your payment method or try again";
+"Try Again" = "Try Again";
+"Change" = "Change";
+
+
+//PaymentMethodView
+"subscription" = "subscription";
+"Choose your Payment Method" = "Choose your Payment Method";
+"PayPal" = "PayPal";
+"Master Card" = "Master Card";
+"Visa Card" = "Visa Card";
+"ApplePay" = "ApplePay";
+"Continue" = "Continue";
+
+
+//PaymentSuccessful
+"Payment" = "Payment";
+"Payment Successful" = "Payment Successful";
+"Thank you for your purchase." = "Thank you for your purchase.";
+"Continue" = "Continue";
+
+
+//SignUp
+"Create an Account" = "Create an Account";
+"Full name" = "Full name";
+"Enter your full name" = "Enter your full name";
+"E-mail" = "E-mail";
+"Enter your email" = "Enter your email";
+"Phone" = "Phone";
+"Enter your phone number" = "Enter your phone number";
+"Continue" = "Continue";
+"You already have an account?" = "You already have an account?";
+"Sign in" = "Sign in";
+
+
+
+//ProfileScreen
+"Profile" = "Profile";
+"Upload Photo Profile" = "Upload Photo Profile";
+"Passport Number" = "Passport Number";
+"Passport photo" = "Passport photo";
+"Issuance Date" = "Issuance Date";
+"Expiry Date" = "Expiry Date";
+"Number of the nearest emergency boat" = "Number of the nearest emergency boat";
+"Date of birth" = "Date of birth";
+"Place of birth" = "Place of birth";
+"Experience Years" = "Experience Years";
+"Educational Qualification" = "Educational Qualification";
+"certificates or qualifications" = "certificates or qualifications";
+"Occupation" = "Occupation";
+"Password" = "Password";
+"Enter password" = "Enter password";
+"Confirm New Password" = "Confirm New Password";
+"Enter Confirm password" = "Enter Confirm password";
+"Sign Up" = "Sign Up";
+"Are You sure" = "Are You sure";
+"You want to delete" = "You want to delete";
+"Cancel" = "Cancel";
+"Yes, Remove" = "Yes, Remove";
+
+
+//PricingPlanView
+"Pricing Plan" = "Pricing Plan";
+"Choose your subscription plan" = "Choose your subscription plan";
+"And get a free 7-day trial" = "And get a free 7-day trial";
+"Exclusive Plan" = "Exclusive Plan";
+"Create 10 Jobs" = "Create 10 Jobs";
+"2 Invitation" = "2 Invitation";
+"20 Resume / CV" = "20 Resume / CV";
+"20 User" = "20 User";
+"Business Plan" = "Business Plan";
+"Create 20 Jobs" = "Create 20 Jobs";
+"5 Invitation" = "5 Invitation";
+"40 Resume / CV" = "40 Resume / CV";
+"40 User" = "40 User";
+"Vip Plan" = "Vip Plan";
+"Create 30 Jobs" = "Create 30 Jobs";
+"10 Invitation" = "10 Invitation";
+"60 Resume / CV" = "60 Resume / CV";
+"60 User" = "60 User";
+"Subscribe now" = "Subscribe now";
+
+
+//SettingsView
+"Settings" = "Settings";
+"Notification" = "Notification";
+"Security" = "Security";
+"Language" = "Language";
+"Help" = "Help";
+"Logout" = "Logout";
+"Yes, Logout" = "Yes, Logout";
+"Are you sure want to logout?" = "Are you sure want to logout?";
