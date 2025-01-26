@@ -9,11 +9,18 @@
 
 "Done" = "موافق";
 
+//StartScreen
+"What are you looking for?" = "ماذا تبحث عنه؟";
+"I want a job" = "أريد وظيفة";
+"I want an employee" = "أريد موظفًا";
+
 //FirstScreen
 
 "The Best Portal job of this century" = "أفضل بوابة عمل في هذا القرن";
 "Language" = "اللغة";
 "Continue" = "استمر";
+
+
 
 //LoginScreen
 
@@ -124,7 +131,7 @@
 "Sign in" = "تسجيل الدخول";
 
 
-//ProfileScreen
+//ProfileScreenEmployee
 "Profile" = "الملف الشخصي";
 "Upload Photo Profile" = "تحميل صورة الملف الشخصي";
 "Passport Number" = "رقم الجواز";

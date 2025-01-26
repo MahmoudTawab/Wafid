@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import FirebaseStorage
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -26,12 +27,14 @@ struct JobFinderApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainApp()
+            ProfileCompanyScreen()
         }
         
     }
 }
         
+
+
 
             
             

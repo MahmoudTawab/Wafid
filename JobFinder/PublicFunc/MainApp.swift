@@ -45,12 +45,19 @@ struct MainApp: View {
                             .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
                             .environmentObject(localizationManager) // تمرير localizationManager
 
-                    case .ProfileScreen(let phone, let email,let name):
-                        ProfileScreen(viewModel: ProfileViewModel(phone: phone, email: email, name: name))
+                    case .ProfileEmployeeScreen(let phone, let email,let name):
+                        ProfileEmployeeScreen(viewModel: ProfileEmployeeViewModel(phone: phone, email: email, name: name))
                             .addKeyboardToolbar() // إضافة شريط لوحة المفاتيح هنا
                             .navigationBarTitle("", displayMode: .inline)
                             .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
                             .environmentObject(localizationManager) // تمرير localizationManager
+                        
+                    case .ProfileCompanyScreen:
+                        ProfileCompanyScreen()
+                            .addKeyboardToolbar() // إضافة شريط لوحة المفاتيح هنا
+                            .navigationBarTitle("", displayMode: .inline)
+                            .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
+                            .environmentObject(localizationManager)
                         
                     case .PricingPlanView:
                         PricingPlanView()

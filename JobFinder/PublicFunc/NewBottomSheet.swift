@@ -42,11 +42,13 @@ struct NewBottomSheet<Content: View>: View {
     var body: some View {
         ZStack(alignment: .center) {
             Color.black
-                .opacity(isOpen ? backgroundOpacity : 0)
+                .opacity(isOpen ? minHeight !=  maxHeight ? backgroundOpacity : 0.5 : 0)
                 .edgesIgnoringSafeArea(.all)
                 .animation(.easeInOut, value: translation)
                 .onTapGesture {
+                    if minHeight !=  maxHeight {
                         self.isOpen.toggle()
+                    }
                 }
             
             GeometryReader { geometry in
@@ -72,7 +74,10 @@ struct NewBottomSheet<Content: View>: View {
                         guard abs(value.translation.height) > snapDistance else {
                             return
                         }
-                        self.isOpen = value.translation.height < 0
+                        
+                        if minHeight !=  maxHeight {
+                            self.isOpen = value.translation.height < 0
+                        }
                     }
                 )
             }

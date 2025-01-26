@@ -12,7 +12,8 @@ enum AppViews: Hashable {
     case LanguageSelectionView
     case LoginScreen
     case SignUp
-    case ProfileScreen(phone:String, email:String, name :String)
+    case ProfileEmployeeScreen(phone:String, email:String, name :String)
+    case ProfileCompanyScreen
     case PricingPlanView
     case PaymentMethodView
     case CreditCardFormView(Icon: String,Card:String)

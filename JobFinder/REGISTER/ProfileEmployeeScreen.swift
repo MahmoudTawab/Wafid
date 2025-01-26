@@ -1,5 +1,5 @@
 //
-//  ProfileScreen.swift
+//  ProfileEmployeeScreen.swift
 //  JobFinder
 //
 //  Created by almedadsoft on 14/01/2025.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct ProfileScreen: View {
+struct ProfileEmployeeScreen: View {
     @EnvironmentObject var navigationManager: NavigationManager
-    @StateObject var viewModel: ProfileViewModel
+    @StateObject var viewModel: ProfileEmployeeViewModel
     @State var showingBottomSheet = false
     @State var showPhotoPicker = false
     @State var IsPassport = true
@@ -123,9 +123,6 @@ struct ProfileScreen: View {
                         viewModel.DateOfBirth = text
                         viewModel.DateOfBirthError = error
                     }.padding(.bottom, 10)
-                    
-                    //                    PickerViewGender()
-                    //                        .padding(.vertical)
                     
                     TextFieldCustom(defaultText:.constant(""),IsShowImage:false,title: "Place of birth", placeholder: "Place of birth", isRequired: true, type: .text) { text, error in
                         viewModel.PlaceBirth = text
@@ -321,21 +318,8 @@ struct ProfileScreen: View {
 }
 
 
-// Add FileUploadData struct
-struct FileUploadData {
-    let actionType: String
-    let mainId: Int
-    let subId: Int
-    let detailId: Int
-    let fileType: String
-    let fileId: String
-    let description: String
-    let name: String
-    let dataToken: String
-}
 
-
-class ProfileViewModel: ObservableObject {
+class ProfileEmployeeViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var selectedImage: UIImage?
     @Published var PassportSelectedImage: UIImage?

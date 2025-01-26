@@ -22,6 +22,7 @@ struct LoginScreen: View {
     @State private var passwordError: TextFieldError = .empty
     @EnvironmentObject var navigationManager: NavigationManager
 
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
     @AppStorage("rememberMe") private var selectedRemember = false
     @AppStorage("userCredentials") private var savedCredentials: Data?
     
@@ -109,7 +110,11 @@ struct LoginScreen: View {
                     }
                     .padding(.bottom , 5)
                     .onTapGesture {
-                        navigationManager.navigate(to: .SignUp)
+                        if IsEmployee {
+                            navigationManager.navigate(to: .SignUp)
+                        }else{
+                            navigationManager.navigate(to: .ProfileCompanyScreen)
+                        }
                     }
                     
                 }

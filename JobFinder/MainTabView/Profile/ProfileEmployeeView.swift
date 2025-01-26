@@ -1,5 +1,5 @@
 //
-//  ProfileView.swift
+//  ProfileEmployeeView.swift
 //  JobFinder
 //
 //  Created by almedadsoft on 13/01/2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 // View للملف الشخصي
-struct ProfileView: View {
+struct ProfileEmployeeView: View {
     @AppStorage("user_id") var user_id: String = ""
     @StateObject private var viewModel = ProfileMainViewModel()
     @EnvironmentObject var navigationManager: NavigationManager
@@ -98,7 +98,7 @@ struct ProfileView: View {
                     Spacer()
                     
                     Button {
-//                        navigationManager.navigate(to: .ChatUser)
+                        navigationManager.navigate(to: .ChatUser)
                     } label: {
                         Image("Frame 2087324728")
                             .resizable()
@@ -123,7 +123,7 @@ struct ProfileView: View {
                     TypeToast: .error,
                     FrameHeight: .constant(65)
                 )
-                .padding(.top, -40)
+                .padding(.top,0)
             }
         }
         .task {

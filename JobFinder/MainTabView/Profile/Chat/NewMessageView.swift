@@ -258,10 +258,8 @@ class CreateNewMessageView: ObservableObject {
         
         // Create the query
         let query = FirebaseManager.shared.firestore.collection("UsersChat")
-            .whereField("email", isGreaterThanOrEqualTo: searchText.lowercased())
-            .whereField("email", isLessThanOrEqualTo: searchText.lowercased() + "\u{f8ff}")
-            .limit(to: 10) // Limit results for better performance
         
+
         query.getDocuments { [weak self] snapshot, error in
             guard let self = self else { return }
             
@@ -273,9 +271,8 @@ class CreateNewMessageView: ObservableObject {
                     self.alertMessage = error.localizedDescription
                     return
                 }
-                
+                                
                 self.users = []
-                
                 snapshot?.documents.forEach { document in
                     let user = DataChatUser(data: document.data())
                     

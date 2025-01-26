@@ -8,10 +8,16 @@
 
 "Done" = "Done";
 
+//StartScreen
+"What are you looking for?" = "What are you looking for?";
+"I want a job" = "I want a job";
+"I want an employee" = "I want an employee";
+
 //FirstScreen
 "The Best Portal job of this century" = "The Best Portal job of this century";
 "Language" = "Language";
 "Continue" = "Continue";
+
 
 //LoginScreen
 "Sign in to your account" = "Sign in to your account";
@@ -121,7 +127,7 @@
 
 
 
-//ProfileScreen
+//ProfileScreenEmployee
 "Profile" = "Profile";
 "Upload Photo Profile" = "Upload Photo Profile";
 "Passport Number" = "Passport Number";

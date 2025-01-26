@@ -114,6 +114,19 @@ func makeRequestMultiPost(ApiToken: String, dateToken: String, tableNames: [Stri
 }
 
 
+// Add FileUploadData struct
+struct FileUploadData {
+    let actionType: String
+    let mainId: Int
+    let subId: Int
+    let detailId: Int
+    let fileType: String
+    let fileId: String
+    let description: String
+    let name: String
+    let dataToken: String
+}
+
 // Add image upload function
      func uploadImage(image: UIImage?, type: String) async throws -> String {
         guard let image = image,

@@ -60,7 +60,7 @@ struct SignUp: View {
                         
                         if nameError == .none && emailError == .none && PhoneError == .none {
                             hideKeyboard()
-                            navigationManager.navigate(to: .ProfileScreen(phone: phone, email: email, name: name))
+                            navigationManager.navigate(to: .ProfileEmployeeScreen(phone: phone, email: email, name: name))
                         }
                     }) {
                         Text("Continue")

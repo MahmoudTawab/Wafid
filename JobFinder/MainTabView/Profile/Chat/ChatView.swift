@@ -9,12 +9,18 @@ import SwiftUI
 import Firebase
 import Foundation
 import SDWebImage
+import FirebaseStorage
 import FirebaseFirestore
 import SDWebImageSwiftUI
+import AVFoundation
+import MapKit
+import CoreLocation
 
 // ChatView.swift
 struct ChatView: View {
     @State private var isEmoji: Bool = false
+   
+    @State private var selectedImage: UIImage?
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = ChatViewModel()
     @State private var messageText = ""
@@ -25,6 +31,20 @@ struct ChatView: View {
     let recipientImage: String
     let currentMail: String
     let recipientMail:String
+    
+    @State var image = Image("")
+    @State var showImageViewer = false
+    @State private var showImagePicker = false
+    
+    @State private var showVideoSourceMenu = false
+    @State private var selectedVideo: URL?
+    @State private var showVideoPicker = false
+    
+    @State private var showFilePicker = false
+    @State private var selectedFile: URL?
+
+    @State private var showLocationPicker = false
+    @State private var selectedLocation: CLLocationCoordinate2D?
     
     var body: some View {
         VStack {
@@ -58,13 +78,16 @@ struct ChatView: View {
             ScrollView {
                 LazyVStack {
                     ForEach(viewModel.messages) { message in
-                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage,recipientImage: recipientImage)
-                            .padding(.horizontal)
+                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage,recipientImage: recipientImage) { image in
+                            self.image = image
+                            showImageViewer = true
+                        }
+                        .padding(.horizontal)
                     }
                 }.padding(.top,5)
             }.offset(y:-25)
             
-            HStack {
+            HStack(alignment: .bottom) {
                 Button(action: {
                     isEmoji.toggle()
                 }) {
@@ -75,16 +98,32 @@ struct ChatView: View {
                 
                 
                 EmojiTextView(text: $messageText, placeholder: "write a message...", isEmoji: $isEmoji)
-                    .frame(width: UIScreen.main.bounds.width - 140,height: 40)
+                    .background(Color.clear)
+                    .frame(minHeight: 30, maxHeight: 190)
+                    .frame(width: UIScreen.main.bounds.width - 140,height: calculateTextViewHeight())
                     .tint(rgbToColor(red: 193, green: 140, blue: 70))
                 
                 
                 Button(action: {
-
+                    showVideoSourceMenu = true
                 }) {
                     Image("Frame 2")
                         .resizable()
                         .frame(width: 25,height: 25)
+                }
+                .confirmationDialog("Send Media", isPresented: $showVideoSourceMenu, titleVisibility: .visible) {
+                    Button("Photo") {
+                        showImagePicker = true
+                    }
+                    Button("Video") {
+                        showVideoPicker = true
+                    }
+                    Button("File") {
+                    showFilePicker = true
+                    }
+                    Button("Location") {
+                    showLocationPicker = true
+                    }
                 }
                 
                 Button(action: {
@@ -97,254 +136,166 @@ struct ChatView: View {
                         .resizable()
                         .frame(width: 40,height: 40)
                 }
+                .offset(y:8)
+                .opacity(!messageText.isEmpty ? 1:0.6)
+                .disabled(!messageText.isEmpty ? false:true)
                 
             }
             .offset(y:-15)
-            .frame(minHeight: 35)
             .padding(.horizontal)
         }
         .preferredColorScheme(.light)
         .background(rgbToColor(red: 255, green: 255, blue: 255))
+        .onTapGesture {
+            hideKeyboard()
+        }
+        
+        .overlay(ImageViewer(image: $image, viewerShown: self.$showImageViewer, aspectRatio: .constant(1)))
         
         .onAppear {
             viewModel.fetchUserStatus(userId: recipientId)
             viewModel.listenToMessages(chatId: chatId, currentUserId: currentUserId,recipientId:recipientId)
         }
         
-        .onTapGesture {
-            hideKeyboard()
+        ///
+        .sheet(isPresented: $showImagePicker, onDismiss: uploadSelectedImage) {
+        ImagePicker(image: $selectedImage)
         }
+        
+        ///
+        .sheet(isPresented: $showVideoPicker) {
+            VideoPicker(selectedVideoURL: $selectedVideo)
+        }
+        .onChange(of: selectedVideo) { videoURL in
+            guard let url = videoURL else { return }
+            uploadVideo(url)
+        }
+        
+        ///
+        .sheet(isPresented: $showFilePicker) {
+        DocumentPicker(selectedFile: $selectedFile)
+        }
+        .onChange(of: selectedFile) { fileURL in
+        guard let url = fileURL else { return }
+        uploadFile(url)
+        }
+
+        // Add location picker sheet
+        .sheet(isPresented: $showLocationPicker) {
+            LocationPicker(selectedLocation: $selectedLocation)
+        }
+        
+        .onChange(of: selectedLocation) { location in
+            guard let location = location else { return }
+            sendLocation(location)
+        }
+
     }
     
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
                                       to: nil, from: nil, for: nil)
     }
-}
-
-class UIEmojiTextView: UITextView {
-
-    var placeholder: String? {
-        didSet {
-            setNeedsDisplay() // لإعادة رسم الـ placeholder عند تغييره
-        }
+    
+    private func calculateTextViewHeight() -> CGFloat {
+        let fixedWidth = UIScreen.main.bounds.width - 140
+        let textView = UITextView(frame: CGRect(x: 0, y: 0, width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
+        textView.font = UIFont.systemFont(ofSize: 15)
+        textView.text = messageText
+        
+        let size = textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
+        
+        return withAnimation { min(max(size.height, 30), 190) }
     }
     
-    var isEmoji = false {
-        didSet {
-            setEmoji()
-            if isEmoji {self.becomeFirstResponder()}
-        }
+    ///
+    private func uploadSelectedImage() {
+        guard let image = selectedImage else { return }
+        
+        viewModel.createNewChat(messageType: .image,currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail,image: image)
+        selectedImage = nil
     }
     
-    let placeholderLabel = UILabel()
-        
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        
-        // إخفاء placeholder عندما يكون هناك نص
-        placeholderLabel.numberOfLines = 1
-        placeholderLabel.textAlignment = .left
-        placeholderLabel.font = UIFont.systemFont(ofSize: ControlWidth(15))
-        placeholderLabel.textColor = UIColor.gray
-        placeholderLabel.text = placeholder
-        addSubview(placeholderLabel)
-        placeholderLabel.frame = CGRect(x: 5, y: 3, width: rect.width - 20, height: 30)
-    }
-
-    private func setEmoji() {
-        self.reloadInputViews()
-    }
-
-    override var textInputContextIdentifier: String? {
-        return ""
-    }
-
-    override var textInputMode: UITextInputMode? {
-        for mode in UITextInputMode.activeInputModes {
-            if mode.primaryLanguage == "emoji" && self.isEmoji {
-                self.keyboardType = .default
-                return mode
-            } else if !self.isEmoji {
-                return mode
-            }
-        }
-        return nil
-    }
-}
-
-
-struct EmojiTextView: UIViewRepresentable {
-    @Binding var text: String
-    var placeholder: String = ""
-    @Binding var isEmoji: Bool
-    
-    func makeUIView(context: Context) -> UIEmojiTextView {
-        let emojiTextView = UIEmojiTextView()
-        emojiTextView.placeholder = placeholder
-        emojiTextView.text = text
-        emojiTextView.delegate = context.coordinator
-        emojiTextView.isEmoji = self.isEmoji
-        emojiTextView.isScrollEnabled = false // لتوسيع الحجم تلقائيًا بناءً على النص
-        emojiTextView.font = UIFont.systemFont(ofSize: ControlWidth(15))
-        emojiTextView.backgroundColor = .clear
-        emojiTextView.tintColor = UIColor(rgbToColor(red: 193, green: 140, blue: 70))
-        
-        return emojiTextView
-    }
-    
-    func updateUIView(_ uiView: UIEmojiTextView, context: Context) {
-        uiView.text = text
-        uiView.isEmoji = isEmoji
-        uiView.placeholderLabel.isHidden = !text.isEmpty
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
-    }
-    
-    class Coordinator: NSObject, UITextViewDelegate {
-        var parent: EmojiTextView
-        
-        init(parent: EmojiTextView) {
-            self.parent = parent
-        }
-        
-        func textViewDidChange(_ textView: UITextView) {
-            parent.text = textView.text ?? ""
-        }
-        
-        func textViewDidBeginEditing(_ textView: UITextView) {
-            // تأكد من استخدام الكيبورد الافتراضي الذي يشمل الـ Emoji Picker
-            textView.inputView = nil
-        }
-        
-        func textViewDidEndEditing(_ textView: UITextView) {
-            // إغلاق الكيبورد بعد الانتهاء
-            textView.resignFirstResponder()
-        }
-    }
-}
-
-
-// MessageBubble.swift
-struct MessageBubble: View {
-    let message: Message
-    let isCurrentUser: Bool
-    
-    let isOnline:Bool
-    let currentImage: String
-    let recipientImage: String
-    @State var timestamp = String()
-
-    var body: some View {
-        HStack(spacing: 2) {
+    ///
+    private func uploadVideo(_ videoURL: URL) {
+            guard let videoData = try? Data(contentsOf: videoURL) else { return }
             
-            if !isCurrentUser {
-                VStack() {
+            let storageRef = Storage.storage().reference()
+            let videoName = "\(UUID().uuidString).mp4"
+            let videoRef = storageRef.child("chat_videos/\(chatId)/\(videoName)")
+            
+            videoRef.putData(videoData) { metadata, error in
                 
-                    ZStack(alignment: .bottomTrailing) {
-                        WebImage(url: URL(string: recipientImage)) { image in
-                            image.resizable()
-                        } placeholder: {
-                            Image(systemName: "person.crop.circle")
-                                .foregroundColor(.black.opacity(0.8))
-                        }
-                        
-                        .indicator(.activity)
-                        .scaledToFill()
-                        .frame(width: 35, height: 35, alignment: .center)
-                        .clipShape(Circle())
-                        .overlay(RoundedRectangle(cornerRadius: 25)
-                            .stroke(isOnline ? rgbToColor(red: 60, green: 177, blue: 106):rgbToColor(red: 193, green: 140, blue: 70), lineWidth: 1))
-                        .shadow(color: isOnline ? rgbToColor(red: 60, green: 177, blue: 106):rgbToColor(red: 193, green: 140, blue: 70), radius: 2, x: 0.5, y: 0.5)
-                        .padding(.leading,2)
-                        .padding(.trailing,8)
-                        
-                        // مؤشر الاتصال
-                        if isOnline == true {
-                            Circle()
-                                .fill(rgbToColor(red: 60, green: 177, blue: 106))
-                                .frame(width: 9, height: 9)
-                                .overlay(RoundedRectangle(cornerRadius: 25)
-                                    .stroke(.white, lineWidth: 1.5))
-                                .offset(x: -5, y: -2)
-                        }
-                        
-                    }.padding(.trailing, 3)
+                if let error = error {
+                    print("Video upload error: \(error.localizedDescription)")
+                    return
+                }
+                
+                videoRef.downloadURL { (url, error) in
+                    guard let downloadURL = url else {
+                        print("Could not get download URL")
+                        return
+                    }
                     
-                    Spacer()
+                    viewModel.createNewChat(messageType: .image,currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail,videoUrl: downloadURL.absoluteString)
                 }
             }
-            
-            if isCurrentUser { Spacer() }
-            
-            ZStack(alignment: .bottomTrailing) {
-                VStack(alignment: .trailing,spacing: 2) {
-                    Text(message.content)
-                        .background(.clear)
-                        .multilineTextAlignment(.trailing)
-                        .foregroundColor(isCurrentUser ?  .white : rgbToColor(red: 27, green: 26, blue: 87))
-                }.padding(.bottom,20)
-                Spacer()
-
-                Text(timestamp)
-                    .offset(x:3, y:3)
-                    .background(.clear)
-                    .font(Font.system(size: ControlWidth(11)))
-                    .foregroundColor(isCurrentUser ?  .white : rgbToColor(red: 161, green: 161, blue: 188))
-            }
-            .padding()
-            .background(isCurrentUser ? rgbToColor(red: 193, green: 140, blue: 70) : rgbToColor(red: 247, green: 247, blue: 247))
-            .cornerRadius(isCurrentUser ? 0:10)
-            .clipShape(CustomRoundedShape(corners: [.topLeft, .topRight, .bottomLeft], radius: isCurrentUser ? 10:0))
-            .clipped()
-            
-
-            if !isCurrentUser { Spacer() }
-            
-            if isCurrentUser {
-                VStack() {
-                    Spacer()
-
-                    ZStack(alignment: .bottomTrailing) {
-                        WebImage(url: URL(string: currentImage)) { image in
-                            image.resizable()
-                        } placeholder: {
-                            Image(systemName: "person.crop.circle")
-                                .foregroundColor(.black.opacity(0.8))
-                        }
-                        
-                        .indicator(.activity)
-                        .scaledToFill()
-                        .frame(width: 35, height: 35, alignment: .center)
-                        .clipShape(Circle())
-                        .overlay(RoundedRectangle(cornerRadius: 25)
-                            .stroke(rgbToColor(red: 60, green: 177, blue: 106) , lineWidth: 1))
-                        .shadow(color:rgbToColor(red: 60, green: 177, blue: 106), radius: 2, x: 0.5, y: 0.5)
-                        .padding(.leading,2)
-                        .padding(.trailing,8)
-                        
-                        // مؤشر الاتصال
-                            Circle()
-                                .fill(rgbToColor(red: 60, green: 177, blue: 106))
-                                .frame(width: 9, height: 9)
-                                .overlay(RoundedRectangle(cornerRadius: 25)
-                                    .stroke(.white, lineWidth: 1.5))
-                                .offset(x: -5, y: -2)
-                        
-                    }.padding(.leading, 5)
-                }
-            }
-        }.padding(.bottom,8)
-        
-        .onAppear {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        self.timestamp = formatter.string(from:  message.timestamp)
-        }
     }
+    
+    
+    ///
+    private func uploadFile(_ fileURL: URL) {
+            guard let fileData = try? Data(contentsOf: fileURL) else { return }
+            
+            let storageRef = Storage.storage().reference()
+            let fileName = fileURL.lastPathComponent
+            let fileRef = storageRef.child("chat_files/\(chatId)/\(fileName)")
+            
+            fileRef.putData(fileData) { metadata, error in
+                if let error = error {
+                    print("File upload error: \(error.localizedDescription)")
+                    return
+                }
+                
+                fileRef.downloadURL { (url, error) in
+                    guard let downloadURL = url else {
+                        print("Could not get download URL")
+                        return
+                    }
+                    
+                    viewModel.createNewChat(
+                        messageType: .file,
+                        currentImage: currentImage,
+                        recipientImage: recipientImage,
+                        currentUserId: currentUserId,
+                        currentMail: currentMail,
+                        recipientId: recipientId,
+                        recipientMail: recipientMail,
+                        fileURL: downloadURL.absoluteString
+                    )
+                }
+            }
+        }
+    
+    // New method to send location
+     private func sendLocation(_ location: CLLocationCoordinate2D) {
+         let locationString = "\(location.latitude),\(location.longitude)"
+         
+         viewModel.createNewChat(
+             messageType: .location,
+             currentImage: currentImage,
+             recipientImage: recipientImage,
+             currentUserId: currentUserId,
+             currentMail: currentMail,
+             recipientId: recipientId,
+             recipientMail: recipientMail,
+             initialMessage: locationString
+         )
+     }
 }
+
+
+
 
 // UserStatus.swift
 struct UserStatus: Codable {
@@ -365,6 +316,15 @@ struct Message: Identifiable, Codable {
     var content: String
     var timestamp: Date
     var isRead: Bool
+    var messageType: MessageType
+
+    enum MessageType: String, Codable {
+        case text
+        case image
+        case video
+        case file
+        case location
+    }
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -373,6 +333,7 @@ struct Message: Identifiable, Codable {
         case content
         case timestamp
         case isRead = "is_read"
+        case messageType = "message_type"
     }
 }
 
@@ -454,12 +415,12 @@ class ChatViewModel: ObservableObject {
             }
     }
     
-    func createNewChat(currentImage: String, recipientImage: String, currentUserId: String, currentMail: String, recipientId: String, recipientMail: String, initialMessage: String) {
+    func createNewChat(messageType: Message.MessageType = .text,currentImage: String, recipientImage: String, currentUserId: String, currentMail: String, recipientId: String, recipientMail: String, initialMessage: String = "",image: UIImage? = nil,videoUrl:String = "",fileURL: String = "") {
         let chatId = ChatService.createChatId(userId1: currentUserId, userId2: recipientId)
 
         let chatData = ChatListItem(
             id: chatId,
-            lastMessage: initialMessage,
+            lastMessage: messageType == .text ? initialMessage : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location",
             ProfileImage: [currentImage, recipientImage],
             lastMessageDate: Date(),
             participantIds: [currentUserId, recipientId],
@@ -470,22 +431,60 @@ class ChatViewModel: ObservableObject {
         
         try? db.collection("chats").document(chatId).setData(from: chatData)
 
+        if messageType == .text {
+            sendMessage(
+                content: initialMessage,
+                sender: currentUserId,
+                recipientId: recipientId,
+                chatId: chatId,
+                messageType: messageType
+            )
+        }else if messageType == .image {
+            if let imag = image {
+                uploadImage(
+                    imag,
+                    sender: currentUserId,
+                    recipientId: recipientId,
+                    chatId: chatId
+                )
+            }
+        }else if messageType == .video {
+                sendMessage(
+                content: videoUrl,
+                sender: currentUserId,
+                recipientId: recipientId,
+                chatId: chatId,
+                messageType: .video
+                )
+        }else if messageType == .file {
+            sendMessage(
+            content: fileURL,
+            sender: currentUserId,
+            recipientId: recipientId,
+            chatId: chatId,
+            messageType: .file
+            )
+      }else  if messageType == .location {
         sendMessage(
             content: initialMessage,
             sender: currentUserId,
             recipientId: recipientId,
-            chatId: chatId
+            chatId: chatId,
+            messageType: .location
         )
     }
+        
+    }
 
-    func sendMessage(content: String, sender: String, recipientId: String, chatId: String) {
+    func sendMessage(content: String, sender: String, recipientId: String, chatId: String, messageType: Message.MessageType = .text) {
         let message = Message(
             id: UUID().uuidString,
             sender: sender,
             recipientId: recipientId,
             content: content,
             timestamp: Date(),
-            isRead: false
+            isRead: false,
+            messageType: messageType
         )
 
         do {
@@ -503,13 +502,57 @@ class ChatViewModel: ObservableObject {
                 self?.recipientUnreadCounts = (recipientUnreadCounts[recipientId] ?? 0)
 
                 self?.db.collection("chats").document(chatId).updateData([
-                    "last_message": content,
+                    "last_message": messageType == .text ? content : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location",
                     "last_message_date": Date(),
                     "recipientUnreadCounts": recipientUnreadCounts
                 ])
             }
         } catch {
             print("Error sending message: \(error.localizedDescription)")
+        }
+    }
+    
+    func uploadImage(_ image: UIImage, sender: String, recipientId: String, chatId: String) {
+        guard let imageData = image.jpegData(compressionQuality: 0.5) else { return }
+        
+        let storageRef = Storage.storage().reference()
+        let imageName = "\(UUID().uuidString).jpg"
+        let imageRef = storageRef.child("chat_images/\(chatId)/\(imageName)")
+        
+        imageRef.putData(imageData) { [weak self] metadata, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Image upload error: \(error.localizedDescription)")
+                return
+            }
+            
+            imageRef.downloadURL { (url, error) in
+                guard let downloadURL = url else {
+                    print("Could not get download URL")
+                    return
+                }
+                
+                let message = Message(
+                    id: UUID().uuidString,
+                    sender: sender,
+                    recipientId: recipientId,
+                    content: downloadURL.absoluteString,
+                    timestamp: Date(),
+                    isRead: false,
+                    messageType: .image
+                )
+                
+                do {
+                    try self.db.collection("chats")
+                        .document(chatId)
+                        .collection("messages")
+                        .document(message.id)
+                        .setData(from: message)
+                } catch {
+                    print("Error sending image message: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
@@ -545,4 +588,5 @@ class ChatViewModel: ObservableObject {
         
         }
 }
+
 
