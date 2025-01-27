@@ -27,7 +27,7 @@ struct JobFinderApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ProfileCompanyScreen()
+            MainApp()
         }
         
     }

@@ -9,6 +9,8 @@ import SwiftUI
 
 enum AppViews: Hashable {
     case FirstScreen
+    case JobSelectionView
+    case CareerInterestsView
     case LanguageSelectionView
     case LoginScreen
     case SignUp

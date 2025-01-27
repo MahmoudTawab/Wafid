@@ -462,9 +462,9 @@ class ProfileEmployeeViewModel: ObservableObject {
                 ("method", "1"),
                 ("read_date", "default"),
                 ("nationality_name", selectedCountry),
-                ("createdBy", "0"),
+                ("createdBy", "default"),
                 ("updatedAt", "default"),
-                ("updatedBy", "0"),
+                ("updatedBy", "default"),
                 ("personal_num",Passport),
                 ("personal_attach", passportImageId), // Use image ID instead of base64
                 ("status", "1"),
@@ -487,9 +487,9 @@ class ProfileEmployeeViewModel: ObservableObject {
                 ("relatives_number", NumberOfTheNearest),
                 ("birth_place", PlaceBirth),
                 ("qualification", Educational),
-                ("createdBy", "0"),
+                ("createdBy", "default"),
                 ("updatedAt", "default"),
-                ("updatedBy", "0"),
+                ("updatedBy", "default"),
                 ("profile_attach", profileImageId) // Use image ID
             ]
             

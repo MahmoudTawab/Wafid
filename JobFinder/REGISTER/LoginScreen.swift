@@ -219,9 +219,10 @@ struct LoginScreen: View {
                                         
                       if success && viewModel.userResult?.isValidate == true {
                           DispatchQueue.main.async {
-                              if let id = viewModel.userResult?.id ,let email = viewModel.userResult?.email {
+                              if let id = viewModel.userResult?.id ,let email = viewModel.userResult?.email ,let role = viewModel.userResult?.role {
                                   user_id = id
                                   user_mail = email
+                                  IsEmployee = role == "employee" ? true:false
                                   navigationManager.navigate(to: .MainTabView)
                               }
                           }

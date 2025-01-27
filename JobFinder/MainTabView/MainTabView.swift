@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab: Int = 0
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -26,8 +27,13 @@ struct MainTabView: View {
                 RequestsView()
                     .tag(3)
                 
-                ProfileEmployeeView()
-                    .tag(4)
+                if IsEmployee {
+                    ProfileEmployeeView()
+                        .tag(4)
+                }else{
+                    ProfileCompanyView()
+                        .tag(4)
+                }
             }
             
             CustomTabBar(selectedTab: $selectedTab)

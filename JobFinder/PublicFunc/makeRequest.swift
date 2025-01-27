@@ -55,7 +55,7 @@ func makeRequestGet(
     if let functionName = transactionData.FunctionName {
         jsonData["FunctionName"] = functionName
     }
-
+    
     // Encrypt the jsonData
     let encryptedData = AES256Encryption.encrypt(jsonData)
     

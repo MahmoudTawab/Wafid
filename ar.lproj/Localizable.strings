@@ -21,6 +21,44 @@
 "Continue" = "استمر";
 
 
+//JobSelectionView
+"Next" = "التالي";
+"What job you want?" = "ما هي الوظيفة التي تريدها؟";
+"Choose 3-5 job categories and we’ll optimize the jop vacancy for you." = "اختر من 3 إلى 5 فئات وظيفية وسنعمل على تحسين الوظيفة الشاغرة لك.";
+"Content Writer" = "كاتب محتوى";
+"Art & Design" = "فن وتصميم";
+"Human Resources" = "موارد بشرية";
+"Programmer" = "مبرمج";
+"Finance" = "مالية";
+"Customer Service" = "خدمة العملاء";
+"Food & Restaurant" = "طعام ومطعم";
+"Music Producer" = "منتج موسيقى";
+
+
+//CareerInterestsView
+"What is your Career Interests?" = "ما هي اهتماماتك المهنية؟";
+"What's your current Career level ?" = "ما هو مستوى مسارك المهني الحالي؟";
+"What type(s) of job are you open to ?" = "ما نوع الوظائف التي ترغب في العمل بها؟";
+"What is your preferred workplace settings?" = "ما هي إعدادات مكان العمل المفضلة لديك؟";
+
+"Student" = "طالب";
+"Manager" = "مدير";
+"Entry Level" = "مبتدئ";
+"Experienced" = "ذو خبرة";
+"Not Specified"  = "  غير محدد   ";
+"Senior Management" = "إدارة عليا";
+
+"Full Time" = "دوام كامل";
+"Part Time" = "دوام جزئي";
+"Freelance" = "عمل حر";
+"Shift Based" = "عمل بنظام الورديات";
+"Volunteering" = "عمل تطوعي";
+"Summer Job" = "وظيفة صيفية";
+
+"On-site" = "في الموقع";
+"Remote" = "عن بُعد";
+"Hybrid" = "هجين";
+
 
 //LoginScreen
 

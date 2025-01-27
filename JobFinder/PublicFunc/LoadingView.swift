@@ -1,7 +1,14 @@
+//
+//  LoadingView.swift
+//  Wafid
+//
+//  Created by almedadsoft on 27/01/2025.
+//
+
+
 import SwiftUI
 
 struct LoadingView: View {
-    var loadingText: String = "Loading..." // النص المكتوب
     @State var isLoading: Bool = true // حالة للتحكم في اللودر
 
     var body: some View {
@@ -10,10 +17,6 @@ struct LoadingView: View {
                 ActivityIndicator(isAnimating: $isLoading) // اللودر
                     .frame(width: 20, height: 20)
             }
-
-            Text(loadingText) // النص المكتوب بجانب اللودر
-                .font(.headline)
-                .foregroundColor(isLoading ? .gray : .green) // تغيير اللون حسب الحالة
         }
         .padding()
     }

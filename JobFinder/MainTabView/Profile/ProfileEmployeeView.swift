@@ -10,7 +10,7 @@ import SwiftUI
 // View للملف الشخصي
 struct ProfileEmployeeView: View {
     @AppStorage("user_id") var user_id: String = ""
-    @StateObject private var viewModel = ProfileMainViewModel()
+    @StateObject private var viewModel = ProfileMainEmployeeViewModel()
     @EnvironmentObject var navigationManager: NavigationManager
     // Form Fields State
     @State private var fullName: String = ""
@@ -222,7 +222,7 @@ struct ProfileEmployeeView: View {
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
                 
-                Text("Experience : 2 Years ( Junior )")
+                Text("Experience : \(viewModel.userProfile?.workExperience ?? "") Years ( \(viewModel.userProfile?.qualification ?? "") )")
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
             }
@@ -388,16 +388,16 @@ struct ProfileEmployeeView: View {
     // MARK: - Helper Functions
     
     private func updateFieldsWithProfile(_ profile: UserProfile) {
-        fullName = profile.fullName
-        email = profile.email
-        phone = profile.phone
-        birthDate = profile.birthDate
-        occupation = profile.occupation
-        nationality = profile.nationalityName
-        nationalId = profile.nationalId
-        bloodType = profile.bloodType
-        qualification = profile.qualification
-        birthPlace = profile.birthPlace
+        fullName = profile.fullName ?? ""
+        email = profile.email ?? ""
+        phone = profile.phone ?? ""
+        birthDate = profile.birthDate ?? ""
+        occupation = profile.occupation ?? ""
+        nationality = profile.nationalityName ?? ""
+        nationalId = profile.nationalId ?? ""
+        bloodType = profile.bloodType ?? ""
+        qualification = profile.qualification ?? ""
+        birthPlace = profile.birthPlace ?? ""
     }
 }
 
@@ -423,12 +423,12 @@ struct SocialLinkButton: View {
 
 // Profile Data Models
 struct ProfileResponse: Codable {
-    let totalRowsCount: String
-    let fieldsCount: String
-    let fieldNames: String
-    let fieldTypes: String
-    let outParameters: String
-    let result: [UserProfile]
+    var totalRowsCount: String?
+    var fieldsCount: String?
+    var fieldNames: String?
+    var fieldTypes: String?
+    var outParameters: String?
+    var result: [UserProfile]?
     
     enum CodingKeys: String, CodingKey {
         case totalRowsCount = "TotalRowsCount"
@@ -438,38 +438,47 @@ struct ProfileResponse: Codable {
         case outParameters = "OutParameters"
         case result = "Result"
     }
+    
+    init(totalRowsCount: String? = nil, fieldsCount: String? = nil, fieldNames: String? = nil, fieldTypes: String? = nil, outParameters: String? = nil, result: [UserProfile]? = nil) {
+        self.totalRowsCount = totalRowsCount
+        self.fieldsCount = fieldsCount
+        self.fieldNames = fieldNames
+        self.fieldTypes = fieldTypes
+        self.outParameters = outParameters
+        self.result = result
+    }
 }
 
 struct UserProfile: Codable, Identifiable {
-    let id: String
-    let fullName: String
-    let email: String
-    let phone: String
-    let nationalityName: String
-    let birthDate: String
-    let employeeId: String
-    let occupation: String
-    let releaseDate: String
-    let country: String
-    let expiryDate: String
-    let nationalId: String
-    let nationalIdAttachId: String
-    let nationalIdAttach: String
-    let personalAttach: String
-    let bloodType: String
-    let relativesNumber: String
-    let birthPlace: String
-    let qualification: String
-    let profileAttachId: String
-    let profileAttach: String
-    let subscribed: String
-    let educationId: String
-    let links: String
-    let types: String
-    let education: String
-    let certifications: String
-    let trainings: String
-    let workExperience: String
+    var id: String
+    var fullName: String?
+    var email: String?
+    var phone: String?
+    var nationalityName: String?
+    var birthDate: String?
+    var employeeId: String?
+    var occupation: String?
+    var releaseDate: String?
+    var country: String?
+    var expiryDate: String?
+    var nationalId: String?
+    var nationalIdAttachId: String?
+    var nationalIdAttach: String?
+    var personalAttach: String?
+    var bloodType: String?
+    var relativesNumber: String?
+    var birthPlace: String?
+    var qualification: String?
+    var profileAttachId: String?
+    var profileAttach: String?
+    var subscribed: String?
+    var educationId: String?
+    var links: String?
+    var types: String?
+    var education: String?
+    var certifications: String?
+    var trainings: String?
+    var workExperience: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -502,10 +511,42 @@ struct UserProfile: Codable, Identifiable {
         case trainings
         case workExperience = "work_experience"
     }
+    
+    init(id: String, fullName: String? = nil, email: String? = nil, phone: String? = nil, nationalityName: String? = nil, birthDate: String? = nil, employeeId: String? = nil, occupation: String? = nil, releaseDate: String? = nil, country: String? = nil, expiryDate: String? = nil, nationalId: String? = nil, nationalIdAttachId: String? = nil, nationalIdAttach: String? = nil, personalAttach: String? = nil, bloodType: String? = nil, relativesNumber: String? = nil, birthPlace: String? = nil, qualification: String? = nil, profileAttachId: String? = nil, profileAttach: String? = nil, subscribed: String? = nil, educationId: String? = nil, links: String? = nil, types: String? = nil, education: String? = nil, certifications: String? = nil, trainings: String? = nil, workExperience: String? = nil) {
+        self.id = id
+        self.fullName = fullName
+        self.email = email
+        self.phone = phone
+        self.nationalityName = nationalityName
+        self.birthDate = birthDate
+        self.employeeId = employeeId
+        self.occupation = occupation
+        self.releaseDate = releaseDate
+        self.country = country
+        self.expiryDate = expiryDate
+        self.nationalId = nationalId
+        self.nationalIdAttachId = nationalIdAttachId
+        self.nationalIdAttach = nationalIdAttach
+        self.personalAttach = personalAttach
+        self.bloodType = bloodType
+        self.relativesNumber = relativesNumber
+        self.birthPlace = birthPlace
+        self.qualification = qualification
+        self.profileAttachId = profileAttachId
+        self.profileAttach = profileAttach
+        self.subscribed = subscribed
+        self.educationId = educationId
+        self.links = links
+        self.types = types
+        self.education = education
+        self.certifications = certifications
+        self.trainings = trainings
+        self.workExperience = workExperience
+    }
 }
 
 @MainActor
-class ProfileMainViewModel: ObservableObject {
+class ProfileMainEmployeeViewModel: ObservableObject {
     @Published var userProfile: UserProfile?
     @Published var alertMessage: String?
     @Published var showingAlert = false
@@ -514,7 +555,7 @@ class ProfileMainViewModel: ObservableObject {
     @Published var userImageProfile : UIImage?
     
     private let procedureName = "vmwj6g067SaW8AVo535JJw=="
-    
+
     func fetchUser() async {
         showLoadingIndicator = true
         alertMessage = nil
@@ -539,7 +580,7 @@ class ProfileMainViewModel: ObservableObject {
                 
                 if let jsonData = try? JSONSerialization.data(withJSONObject: decryptedData),
                    let profileResponse = try? JSONDecoder().decode(ProfileResponse.self, from: jsonData) {
-                    if let firstProfile = profileResponse.result.first {
+                    if let firstProfile = profileResponse.result?.first {
                         userProfile = firstProfile
                         if let profileAttach = userProfile?.profileAttachId { CollApiDownloadFile(fileId: profileAttach) }
                         showLoadingIndicator = false
@@ -577,7 +618,6 @@ class ProfileMainViewModel: ObservableObject {
                             if let image = UIImage(data: decodedData) {
                                 // تم تحميل الصورة بنجاح
                                 self.userImageProfile = image
-                                print("Image downloaded successfully")
                             }
                         }
                     }

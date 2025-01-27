@@ -25,6 +25,18 @@ struct MainApp: View {
                             .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
                             .environmentObject(localizationManager) // تمرير localizationManager
                         
+                    case .JobSelectionView:
+                        JobSelectionView()
+                            .navigationBarTitle("", displayMode: .inline)
+                            .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
+                            .environmentObject(localizationManager) // تمرير localizationManager
+                        
+                    case .CareerInterestsView:
+                        CareerInterestsView()
+                            .navigationBarTitle("", displayMode: .inline)
+                            .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
+                            .environmentObject(localizationManager) // تمرير localizationManager
+                        
                     case .LanguageSelectionView:
                         LanguageSelectionView()
                             .navigationBarTitle("", displayMode: .inline)

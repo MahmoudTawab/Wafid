@@ -12,7 +12,7 @@ struct StartScreen: View {
     @AppStorage("user_id") var user_id: String = ""
     @StateObject var viewModel = ChatListViewModel()
     @State private var showingBottomSheet: Bool = false
-    @AppStorage("IsEmployee") var IsEmployee: Bool = false
+    @AppStorage("IsEmployee") var IsEmployee: Bool = true
     @EnvironmentObject var navigationManager: NavigationManager
     
     var body: some View {
@@ -58,7 +58,7 @@ struct StartScreen: View {
                         HStack(spacing: 30) {
                             Button(action: {
                                 IsEmployee = true
-                                navigationManager.navigate(to: user_id == "" ? .FirstScreen : .MainTabView)
+                                navigationManager.navigate(to: user_id == "" ? .JobSelectionView : .MainTabView)
                                 withAnimation { showingBottomSheet = false }
                             }) {
                                 VStack(spacing: -10) {
@@ -121,7 +121,7 @@ struct StartScreen: View {
         .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
         .background(rgbToColor(red: 255, green: 255, blue: 255))
         .onAppear {
-            withAnimation {showingBottomSheet = true}
+            
             if let uid = FirebaseManager.shared.auth.currentUser?.uid {
                 viewModel.onlineStatusService.setupPresence(userId: uid)
             }
@@ -129,6 +129,15 @@ struct StartScreen: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation {isLogoVisible = true}
             }
+            
+            if user_id != "" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            navigationManager.navigate(to: .MainTabView)
+            }
+            }else{
+            withAnimation {showingBottomSheet = true}
+            }
+            
         }
     }
     

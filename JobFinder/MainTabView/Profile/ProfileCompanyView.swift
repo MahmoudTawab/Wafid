@@ -1,5 +1,5 @@
 //
-//  ProfileEmployeeView 2.swift
+//  ProfileCompanyView.swift
 //  Wafid
 //
 //  Created by almedadsoft on 27/01/2025.
@@ -9,37 +9,34 @@
 import SwiftUI
 
 // View للملف الشخصي
-struct ProfileEmployeeView: View {
+struct ProfileCompanyView: View {
     @AppStorage("user_id") var user_id: String = ""
-    @StateObject private var viewModel = ProfileMainViewModel()
+    @StateObject private var viewModel = ProfileMainCompanyViewModel()
     @EnvironmentObject var navigationManager: NavigationManager
+    
     // Form Fields State
+    @State private var Description: String = ""
+    @State private var NameOfCompany: String = ""
     @State private var fullName: String = ""
     @State private var email: String = ""
     @State private var phone: String = ""
-    @State private var birthDate: String = ""
-    @State private var gender: String = ""
-    @State private var address: String = ""
-    @State private var occupation: String = ""
-    @State private var nationality: String = ""
-    @State private var nationalId: String = ""
-    @State private var bloodType: String = ""
-    @State private var qualification: String = ""
-    @State private var birthPlace: String = ""
+    @State private var EstablishedDate: String = ""
+    @State private var Country: String = ""
+    @State private var CompanyAddress: String = ""
+    @State private var Activity: String = ""
+    @State private var Branches: String = ""
     
     // Error States
     @State private var fullNameError: TextFieldError = .none
     @State private var emailError: TextFieldError = .none
     @State private var phoneError: TextFieldError = .none
-    @State private var birthDateError: TextFieldError = .none
-    @State private var genderError: TextFieldError = .none
-    @State private var addressError: TextFieldError = .none
-    @State private var occupationError: TextFieldError = .none
-    @State private var nationalityError: TextFieldError = .none
-    @State private var nationalIdError: TextFieldError = .none
-    @State private var bloodTypeError: TextFieldError = .none
-    @State private var qualificationError: TextFieldError = .none
-    @State private var birthPlaceError: TextFieldError = .none
+    @State private var NameOfCompanyError: TextFieldError = .none
+    @State private var EstablishedDateError: TextFieldError = .none
+    @State private var CountryError: TextFieldError = .none
+    @State private var CompanyAddressError: TextFieldError = .none
+    @State private var ActivityError: TextFieldError = .none
+    @State private var BranchesError: TextFieldError = .none
+
     
     // Tab Selection
     @State private var selectedTab: ProfileTab = .general
@@ -49,9 +46,8 @@ struct ProfileEmployeeView: View {
     
     enum ProfileTab: String {
         case general = "General"
-        case uploadCV = "Upload CV"
-        case education = "Education"
-        case certificates = "Certificates"
+        case uploadCV = "Add User"
+        case education = "Pricing Plann"
     }
     
     var body: some View {
@@ -64,12 +60,6 @@ struct ProfileEmployeeView: View {
                         
                         // Profile Info Section
                         profileInfoSection
-                        
-                        // Social Links Section
-                        socialLinksSection
-                        
-                        // Resume Section
-                        resumeSection
                         
                         Rectangle()
                             .frame(height: 0.2)
@@ -127,12 +117,13 @@ struct ProfileEmployeeView: View {
                 .padding(.top,0)
             }
         }
+        
         .task {
             if viewModel.userProfile == nil {
                 await viewModel.fetchUser()
-                if let profile = viewModel.userProfile {
-                    updateFieldsWithProfile(profile)
-                }
+                    if let profile = viewModel.userProfile {
+                        updateFieldsWithProfile(profile)
+                    }
             }
         }
         
@@ -215,15 +206,11 @@ struct ProfileEmployeeView: View {
                 Text(viewModel.userProfile?.fullName ?? "")
                     .font(.system(size: ControlWidth(20), weight: .bold))
                 
-                Text(viewModel.userProfile?.country ?? "")
+                Text(viewModel.userProfile?.email ?? "")
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
                 
-                Text(viewModel.userProfile?.occupation ?? "")
-                    .font(.system(size: ControlWidth(14)))
-                    .foregroundColor(.gray)
-                
-                Text("Experience : 2 Years ( Junior )")
+                Text("\(viewModel.userProfile?.country ?? "")  \(viewModel.userProfile?.companyAddress1 ?? "")")
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
             }
@@ -240,71 +227,10 @@ struct ProfileEmployeeView: View {
         }
     }
     
-    private var socialLinksSection: some View {
-        HStack(spacing: 20) {
-            Spacer()
-            SocialLinkButton(imageName: "facebook", url: "")
-            Spacer()
-            SocialLinkButton(imageName: "github", url: "")
-            Spacer()
-            SocialLinkButton(imageName: "linkedin", url: "")
-            Spacer()
-            SocialLinkButton(imageName: "behance", url: "")
-            Spacer()
-            Spacer()
-        }
-    }
-    
-    private var resumeSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Resume")
-                .foregroundColor(.black)
-                .font(.system(size: ControlWidth(16)))
-            
-            HStack(spacing: 10) {
-                Text("Your Resume")
-                    .foregroundColor(.black)
-                
-                Spacer()
-                
-                Button(action: {
-                    showPDFViewer = true
-                }) {
-                    Text("View")
-                        .font(.system(size: ControlWidth(14)))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(rgbToColor(red: 193, green: 140, blue: 70))
-                        .cornerRadius(12)
-                }
-                
-                Button(action: {
-                    // Add PDF download action
-                }) {
-                    
-                    Text("PDF")
-                        .font(.system(size: ControlWidth(14)))
-                        .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(rgbToColor(red: 255, green: 247, blue: 236))
-                        .cornerRadius(12)
-                       
-                }
-            }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(25)
-            .frame(width: UIScreen.main.bounds.width - 40)
-            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-        }
-    }
-    
     private var tabSelectionSection: some View {
         ZStack(alignment: .bottom) {
             HStack(spacing: 0) {
-                ForEach([ProfileTab.general, .uploadCV, .education, .certificates], id: \.self) { tab in
+                ForEach([ProfileTab.general, .uploadCV, .education], id: \.self) { tab in
                     Button(action: {
                         withAnimation {
                             selectedTab = tab
@@ -335,36 +261,47 @@ struct ProfileEmployeeView: View {
     private var formFieldsSection: some View {
         VStack(spacing: 16) {
             
-            TextFieldCustom(defaultText: $fullName,title: "Full name", placeholder: "Enter your full name", isRequired: true, type: .text) { text, error in
-                fullName = text
-                fullNameError = error
-            }
-
+            FacebookStyleEditor(placeholder: "Description", Editor: .constant(""),text: $Description)
             
-            TextFieldCustom(defaultText: $email,title: "E-mail", placeholder: "Enter your email", isRequired: true, type: .email) { text, error in
+            TextFieldCustom(defaultText: $NameOfCompany,IsShowImage: false,title: "Name of Company", placeholder: "Name of Company", isRequired: true, type: .text) { text, error in
+            NameOfCompany = text
+            NameOfCompanyError = error
+            }
+            
+            TextFieldCustom(defaultText: $email,title: "Company E-mail", placeholder: "Enter your email", isRequired: true, type: .email) { text, error in
                 email = text
                 emailError = error
             }
-            
-            
+
             TextFieldCustom(defaultText: $phone,title: "Phone number", placeholder: "Enter your phone number", isRequired: true, type: .phone,IsShowCountry : false) { text, error in
                 phone = text
                 phoneError = error
             }
                         
-            TextFieldCustom(defaultText: $birthDate,title: "Date of birth", placeholder: "Select your birth date", isRequired: true, type: .date) { text, error in
-                birthDate = text
-                birthDateError = error
+            TextFieldCustom(defaultText: $EstablishedDate,title: "Established date", placeholder: "Established date", isRequired: true, type: .date,IsShowCountry : false) { text, error in
+                EstablishedDate = text
+                EstablishedDateError = error
             }
             
-            TextFieldCustom(defaultText: $birthPlace,IsShowImage:false,title: "Place of birth", placeholder: "Place of birth", isRequired: true, type: .text) { text, error in
-                birthPlace = text
-                addressError = error
+ 
+            TextFieldCustom(defaultText: $Country,IsShowImage:false,title: "Country", placeholder: "Country", isRequired: true, type: .text) { text, error in
+                Country = text
+                CountryError = error
+            }
+         
+            TextFieldCustom(defaultText: $CompanyAddress,IsShowImage:false,title: "Company Address", placeholder: "Company Address", isRequired: true, type: .text) { text, error in
+                CompanyAddress = text
+                CompanyAddressError = error
             }
             
-            TextFieldCustom(defaultText: $occupation,IsShowImage:false,title: "Occupation", placeholder: "Enter your occupation", isRequired: true, type: .text) { text, error in
-                occupation = text
-                occupationError = error
+            TextFieldCustom(defaultText: $Activity,IsShowImage:false,title: "Activity", placeholder: "Activity", isRequired: true, type: .text) { text, error in
+                Activity = text
+                ActivityError = error
+            }
+           
+            TextFieldCustom(defaultText: $Branches,IsShowImage:false,title: "Branches", placeholder: "Branches", isRequired: true, type: .text) { text, error in
+                Branches = text
+                BranchesError = error
             }
         }
     }
@@ -388,134 +325,178 @@ struct ProfileEmployeeView: View {
     
     // MARK: - Helper Functions
     
-    private func updateFieldsWithProfile(_ profile: UserProfile) {
-        fullName = profile.fullName
-        email = profile.email
-        phone = profile.phone
-        birthDate = profile.birthDate
-        occupation = profile.occupation
-        nationality = profile.nationalityName
-        nationalId = profile.nationalId
-        bloodType = profile.bloodType
-        qualification = profile.qualification
-        birthPlace = profile.birthPlace
+    private func updateFieldsWithProfile(_ profile: CompanyProfile) {
+        fullName = profile.fullName ?? ""
+        email = profile.email ?? ""
+        phone = profile.phone ?? ""
+        Description = profile.activity ?? ""
+        NameOfCompany = profile.companyName ?? ""
+        EstablishedDate = profile.readDate ?? ""
+        Country = profile.country ?? ""
+        CompanyAddress = profile.companyAddress ?? ""
+        Activity = profile.activity ?? ""
+        Branches = profile.companyAddress1 ?? ""
     }
 }
 
-// MARK: - Supporting Views
 
-struct SocialLinkButton: View {
-    let imageName: String
-    let url: String
-    
-    var body: some View {
-        Button(action: {
-            // Add social link action
-            guard let url = URL(string: url) else { return }
-            UIApplication.shared.open(url)
-        }) {
-            Image(imageName)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .foregroundColor(.blue)
-        }
-    }
-}
-
-// Profile Data Models
-struct ProfileResponse: Codable {
-    let totalRowsCount: String
-    let fieldsCount: String
-    let fieldNames: String
-    let fieldTypes: String
-    let outParameters: String
-    let result: [UserProfile]
+struct ProfileCompanyResponse: Codable {
+    var fieldNames: String?
+    var fieldTypes: String?
+    var fieldsCount: String?
+    var outParameters: String?
+    var result: [CompanyProfile]?
+    var totalRowsCount: String?
     
     enum CodingKeys: String, CodingKey {
-        case totalRowsCount = "TotalRowsCount"
-        case fieldsCount = "FieldsCount"
         case fieldNames = "FieldNames"
         case fieldTypes = "FieldTypes"
+        case fieldsCount = "FieldsCount"
         case outParameters = "OutParameters"
         case result = "Result"
+        case totalRowsCount = "TotalRowsCount"
+    }
+    
+    init(fieldNames: String? = nil, fieldTypes: String? = nil, fieldsCount: String? = nil, outParameters: String? = nil, result: [CompanyProfile]? = nil, totalRowsCount: String? = nil) {
+        self.fieldNames = fieldNames
+        self.fieldTypes = fieldTypes
+        self.fieldsCount = fieldsCount
+        self.outParameters = outParameters
+        self.result = result
+        self.totalRowsCount = totalRowsCount
     }
 }
 
-struct UserProfile: Codable, Identifiable {
-    let id: String
-    let fullName: String
-    let email: String
-    let phone: String
-    let nationalityName: String
-    let birthDate: String
-    let employeeId: String
-    let occupation: String
-    let releaseDate: String
-    let country: String
-    let expiryDate: String
-    let nationalId: String
-    let nationalIdAttachId: String
-    let nationalIdAttach: String
-    let personalAttach: String
-    let bloodType: String
-    let relativesNumber: String
-    let birthPlace: String
-    let qualification: String
-    let profileAttachId: String
-    let profileAttach: String
-    let subscribed: String
-    let educationId: String
-    let links: String
-    let types: String
-    let education: String
-    let certifications: String
-    let trainings: String
-    let workExperience: String
+struct CompanyProfile: Codable {
+    var id: String
+    var fullName: String?
+    var email: String?
+    var role: String?
+    var phone: String?
+    var companyId: String?
+    var companyName: String?
+    var companyAddress: String?
+    var activity: String?
+    var companyAddress1: String?
+    var companyType: String?
+    var adminId: String?
+    var companyPhone: String?
+    var companyCapital: String?
+    var country: String?
+    var taxAttachId: String?
+    var personalNum: String?
+    var personalAttachId: String?
+    var personalAttach: String?
+    var isMultinational: String?
+    var recordAttach: String?
+    var taxAttach: String?
+    var createdBy: String?
+    var readDate: String?
+    var updatedAt: String?
+    var updatedBy: String?
+    var nationality: String?
+    var nearestPoint: String?
+    var recordAttachId: String?
+    var companyUsers: String?
+    var CompanyData : [CompanyUser]?
     
     enum CodingKeys: String, CodingKey {
-        case id
-        case fullName
-        case email
-        case phone
-        case nationalityName = "nationality_name"
-        case birthDate = "birth_date"
-        case employeeId = "employee_id"
-        case occupation
-        case releaseDate = "release_date"
+        case id, fullName, email, role, phone
+        case companyId = "company_id"
+        case companyName = "company_name"
+        case companyAddress = "company_address"
+        case activity
+        case companyAddress1 = "company_address_1"
+        case companyType = "company_type"
+        case adminId = "admin_id"
+        case companyPhone = "company_phone"
+        case companyCapital = "company_capital"
         case country
-        case expiryDate = "expiry_date"
-        case nationalId = "national_id"
-        case nationalIdAttachId = "national_id_attach_id"
-        case nationalIdAttach = "national_id_attach"
+        case taxAttachId = "tax_attach_id"
+        case personalNum = "personal_num"
+        case personalAttachId = "personal_attach_id"
         case personalAttach = "personal_attach"
-        case bloodType = "blood_type"
-        case relativesNumber = "relatives_number"
-        case birthPlace = "birth_place"
-        case qualification
-        case profileAttachId = "profile_attach_id"
-        case profileAttach = "profile_attach"
-        case subscribed = "Subscribed"
-        case educationId = "education_id"
-        case links
-        case types
-        case education
-        case certifications
-        case trainings
-        case workExperience = "work_experience"
+        case isMultinational
+        case recordAttach = "record_attach"
+        case taxAttach = "tax_attach"
+        case readDate = "read_date"
+        case createdBy , updatedAt, updatedBy, nationality, nearestPoint
+        case recordAttachId = "record_attach_id"
+        case companyUsers = "company_users"
+    }
+    
+    init(id: String, fullName: String? = nil, email: String? = nil, role: String? = nil, phone: String? = nil, companyId: String? = nil, companyName: String? = nil, companyAddress: String? = nil, activity: String? = nil, companyAddress1: String? = nil, companyType: String? = nil, adminId: String? = nil, companyPhone: String? = nil, companyCapital: String? = nil, country: String? = nil, taxAttachId: String? = nil, personalNum: String? = nil, personalAttachId: String? = nil, personalAttach: String? = nil, isMultinational: String? = nil, recordAttach: String? = nil, taxAttach: String? = nil, createdBy: String? = nil, readDate: String? = nil, updatedAt: String? = nil, updatedBy: String? = nil, nationality: String? = nil, nearestPoint: String? = nil, recordAttachId: String? = nil, companyUsers: String? = nil, CompanyData: [CompanyUser]? = nil) {
+        self.id = id
+        self.fullName = fullName
+        self.email = email
+        self.role = role
+        self.phone = phone
+        self.companyId = companyId
+        self.companyName = companyName
+        self.companyAddress = companyAddress
+        self.activity = activity
+        self.companyAddress1 = companyAddress1
+        self.companyType = companyType
+        self.adminId = adminId
+        self.companyPhone = companyPhone
+        self.companyCapital = companyCapital
+        self.country = country
+        self.taxAttachId = taxAttachId
+        self.personalNum = personalNum
+        self.personalAttachId = personalAttachId
+        self.personalAttach = personalAttach
+        self.isMultinational = isMultinational
+        self.recordAttach = recordAttach
+        self.taxAttach = taxAttach
+        self.createdBy = createdBy
+        self.readDate = readDate
+        self.updatedAt = updatedAt
+        self.updatedBy = updatedBy
+        self.nationality = nationality
+        self.nearestPoint = nearestPoint
+        self.recordAttachId = recordAttachId
+        self.companyUsers = companyUsers
+        self.CompanyData = CompanyData
+    }
+    
+}
+
+struct CompanyUser: Codable {
+    var userId: Int?
+    var userName: String?
+    var email: String?
+    var userPhone: String?
+    var role: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case userName = "user_name"
+        case email
+        case userPhone = "user_phone"
+        case role
+    }
+    
+    init(userId: Int? = nil, userName: String? = nil, email: String? = nil, userPhone: String? = nil, role: String? = nil) {
+        self.userId = userId
+        self.userName = userName
+        self.email = email
+        self.userPhone = userPhone
+        self.role = role
     }
 }
 
+
 @MainActor
-class ProfileMainViewModel: ObservableObject {
-    @Published var userProfile: UserProfile?
+class ProfileMainCompanyViewModel: ObservableObject {
+    @Published var userProfile: CompanyProfile?
     @Published var alertMessage: String?
     @Published var showingAlert = false
     @Published var showLoadingIndicator = false
     @AppStorage("user_id") var userId: String = ""
     @Published var userImageProfile : UIImage?
     
-    private let procedureName = "vmwj6g067SaW8AVo535JJw=="
-    
+    private let procedureName = "WGhhBCgyZ+aO3D1gfDjRow=="
+
     func fetchUser() async {
         showLoadingIndicator = true
         alertMessage = nil
@@ -535,20 +516,33 @@ class ProfileMainViewModel: ObservableObject {
                 orderedKeys: orderedParameters
             )
             
-            if let encrypted = response as? [String: Any] , let dataString = encrypted["Data"] as? String {
+            if let encrypted = response as? [String: Any], let dataString = encrypted["Data"] as? String {
                 let decryptedData = AES256Encryption.decrypt(dataString)
                 
                 if let jsonData = try? JSONSerialization.data(withJSONObject: decryptedData),
-                   let profileResponse = try? JSONDecoder().decode(ProfileResponse.self, from: jsonData) {
-                    if let firstProfile = profileResponse.result.first {
-                        userProfile = firstProfile
-                        if let profileAttach = userProfile?.profileAttachId { CollApiDownloadFile(fileId: profileAttach) }
-                        showLoadingIndicator = false
+                   let profileResponse = try? JSONDecoder().decode(ProfileCompanyResponse.self, from: jsonData) {
+                    if var firstProfile = profileResponse.result?.first {
+                        // فك التشفير للمستخدمين داخل company_users
+                        if var companyUsersString = firstProfile.companyUsers {
+                            companyUsersString = companyUsersString.replacingOccurrences(of: "\\\"", with: "\"")
+
+                            if  let companyUsersData = companyUsersString.data(using: .utf8) {
+                            let decoder = JSONDecoder()
+                            if let companyUsers = try? decoder.decode([CompanyUser].self, from: companyUsersData) {
+                                firstProfile.CompanyData = companyUsers
+                                self.userProfile = firstProfile
+                                if let personalAttachId = self.userProfile?.personalAttachId {self.CollApiDownloadFile(fileId:personalAttachId)}
+                                self.showLoadingIndicator = false
+                            }
+                            }
+                        }
                     }
                 } else {
-                    showingAlert = true
-                    showLoadingIndicator = false
-                    alertMessage = "Failed to decode profile data"
+                    DispatchQueue.main.async {
+                        self.showingAlert = true
+                        self.showLoadingIndicator = false
+                        self.alertMessage = "Failed to decode profile data"
+                    }
                 }
             }
         } catch {

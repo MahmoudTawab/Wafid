@@ -107,7 +107,7 @@ struct ProfileCompanyScreen: View {
                     
                     
                     PickerViewCountry(selectedCountry: $viewModel.selectedCountry)
-                        .padding(.vertical)
+                        .padding(.bottom, 10)
                     
                     
                     TextFieldCustom(defaultText:.constant(""),IsShowImage: false,title: "Company Address", placeholder: "Company Address", isRequired: true, type: .text) { text, error in
@@ -120,9 +120,23 @@ struct ProfileCompanyScreen: View {
                         viewModel.ActivityError = error
                     }.padding(.bottom, 10)
 
+                    TextFieldCustom(defaultText:.constant(""),title: "Password", placeholder: "Enter password", isRequired: true, type: .password) { text, error in
+                        viewModel.password = text
+                        viewModel.passwordError = error
+                    }.padding(.bottom, 10)
+                    
+                    
+                    TextFieldCustom(defaultText:.constant(""),title: "Confirm New Password", placeholder: "Enter Confirm password", isRequired: true, type: .Confirminvalid,
+                                    passwordToMatch: viewModel.password) { text, error in
+                        viewModel.ConfirmNew = text
+                        viewModel.ConfirmpasswordError = error
+                    }.padding(.bottom, 10)
+                    
         
-                    EmployeeNumberSurvey()
-                        .padding(.bottom, 10)
+                    EmployeeNumberSurvey { NumberSurvey in
+                    viewModel.EmployeeNumberSelected = NumberSurvey
+                    }
+                    .padding(.bottom, 10)
                     
                     Button(action: {
                         FuncSignUp()
@@ -220,6 +234,7 @@ struct ProfileCompanyScreen: View {
 
 
 struct EmployeeNumberSurvey: View {
+    let actionSelected: (_ Selected : String) -> Void
     @State private var selectedOption: String? = nil // لتتبع الخيار المحدد
 
     var body: some View {
@@ -237,22 +252,34 @@ struct EmployeeNumberSurvey: View {
                             RadioButtonOption(
                                 label: "10 - 50",
                                 isSelected: selectedOption == "10 - 50",
-                                action: { selectedOption = "10 - 50" }
+                                action: {
+                                    selectedOption = "10 - 50"
+                                    actionSelected(selectedOption ?? "10 - 50")
+                                }
                             )
                             RadioButtonOption(
                                 label: "51 - 100",
                                 isSelected: selectedOption == "51 - 100",
-                                action: { selectedOption = "51 - 100" }
+                                action: {
+                                    selectedOption = "51 - 100"
+                                    actionSelected(selectedOption ?? "10 - 50")
+                                }
                             )
                             RadioButtonOption(
                                 label: "101 - 200",
                                 isSelected: selectedOption == "101 - 200",
-                                action: { selectedOption = "101 - 200" }
+                                action: {
+                                    selectedOption = "101 - 200"
+                                    actionSelected(selectedOption ?? "10 - 50")
+                                }
                             )
                             RadioButtonOption(
                                 label: "Over 200",
                                 isSelected: selectedOption == "Over 200",
-                                action: { selectedOption = "Over 200" }
+                                action: {
+                                    selectedOption = "Over 200"
+                                    actionSelected(selectedOption ?? "10 - 50")
+                                }
                             )
                         }
                     }
@@ -292,7 +319,7 @@ class ProfileCompanyViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var selectedImage: UIImage?
     @Published var selectedCountry: String = "Libya"
-
+    @Published var EmployeeNumberSelected : String = "10 - 50"
     
     @Published var NameCompany = ""
     @Published var PhoneNumber = ""
@@ -300,12 +327,17 @@ class ProfileCompanyViewModel: ObservableObject {
     @Published var CompanyAddress = ""
     @Published var Activity = ""
     
+    @Published var password = ""
+    @Published var ConfirmNew = ""
+    
     @Published var NameCompanyError: TextFieldError = .empty
     @Published var PhoneNumberError: TextFieldError = .empty
     @Published var dateEstablishedError: TextFieldError = .empty
     @Published var CompanyAddressError: TextFieldError = .empty
     @Published var ActivityError: TextFieldError = .empty
 
+    @Published var passwordError: TextFieldError = .empty
+    @Published var ConfirmpasswordError: TextFieldError = .empty
     
     var user_id: String = ""
     @AppStorage("user_mail") var user_mail: String = ""
@@ -330,6 +362,11 @@ class ProfileCompanyViewModel: ObservableObject {
         PhoneNumberError = .none
         Activity = ""
         ActivityError = .none
+        
+        password = ""
+        passwordError = .none
+        ConfirmNew = ""
+        ConfirmpasswordError = .none
     }
     
     // MARK: - Validation Methods
@@ -339,7 +376,9 @@ class ProfileCompanyViewModel: ObservableObject {
                            dateEstablishedError == .none &&
                            CompanyAddressError == .none &&
                            PhoneNumberError == .none &&
-                           ActivityError == .none
+                           ActivityError == .none &&
+                           passwordError == .none &&
+                           ConfirmpasswordError == .none
         
         return isFieldsValid
     }
@@ -356,50 +395,56 @@ class ProfileCompanyViewModel: ObservableObject {
             
             // Prepare user data with image IDs instead of base64
             let userData: [(String, Any)] = [
-//                ("id", "0"),
-//                ("fullName", name),
-//                ("email", email),
-//                ("password", password),
-//                ("phone", phone),
-//                ("role", "employee"),
-//                ("company_id", "0"),
-//                ("isValidate", "0"),
-//                ("active", "1"),
-//                ("method", "1"),
-//                ("read_date", "default"),
-//                ("nationality_name", selectedCountry),
-//                ("createdBy", "0"),
-//                ("updatedAt", "default"),
-//                ("updatedBy", "0"),
-//                ("personal_num",Passport),
-//                ("personal_attach", passportImageId), // Use image ID instead of base64
-//                ("status", "1"),
-//                ("Legal_status", "")
+                ("id", "0"),
+                ("fullName", NameCompany),
+                ("email", CompanyAddress),
+                ("password", password),
+                ("phone", PhoneNumber),
+                ("role", "company"),
+                ("company_id", "0"),
+                ("isValidate", "0"),
+                ("active", "1"),
+                ("method", "1"),
+                ("read_date", "default"),
+                ("nationality_name", selectedCountry),
+                ("createdBy", "0"),
+                ("updatedAt", "default"),
+                ("updatedBy", "0"),
+                ("personal_num",""),
+                ("personal_attach", ""), // Use image ID instead of base64
+                ("status", "0"),
+                ("Legal_status", "")
             ]
             
-            // Prepare employee data with image IDs
-            let employeeData: [(String, Any)] = [
-//                ("id", "0"),
-//                ("userss_id", "0"),
-//                ("birth_date",DateOfBirth),
-//                ("occupation",Occupation),
-//                ("country", selectedCountry),
-//                ("national_id", Passport),
-//                ("national_id_attach", educationalImageId), // Use image ID
-//                ("read_date", "default"),
-//                ("release_date", dateExpiry),
-//                ("expiry_date", dateText),
-//                ("blood_type", selectedBloodType),
-//                ("relatives_number", NumberOfTheNearest),
-//                ("birth_place", PlaceBirth),
-//                ("qualification", Educational),
-//                ("createdBy", "0"),
-//                ("updatedAt", "default"),
-//                ("updatedBy", "0"),
-//                ("profile_attach", profileImageId) // Use image ID
+            // Prepare company data with image IDs
+            let companyData: [(String, Any)] = [
+                ("id", "0"),
+                ("company_name", "0"),
+                ("company_address",CompanyAddress),
+                ("activity",Activity),
+                ("country", selectedCountry),
+                ("users_id", "0"),
+                ("read_date", "default"),
+                ("package_id", "0"),
+                ("company_phone", PhoneNumber),
+                ("company_capital", EmployeeNumberSelected),
+                ("country", selectedCountry),
+                
+                
+                ("nationality", ""),
+                ("createdBy", "default"),
+                ("updatedAt", "default"),
+                ("updatedBy", "default"),
+                
+                ("nearest_point", ""),
+                ("record_attach", ""),
+                
+                ("tax_attach", ""),
+                ("isMultinational", ""),
+                ("isMultinational", "")
             ]
             
-            let multiData = [userData, employeeData]
+            let multiData = [userData, companyData]
             
             let result = try await makeRequestMultiPost(
                 ApiToken: ApiToken,

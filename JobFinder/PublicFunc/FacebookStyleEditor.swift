@@ -1,37 +1,46 @@
+//
+//  FacebookStyleEditor.swift
+//  Wafid
+//
+//  Created by almedadsoft on 27/01/2025.
+//
+
+
 import SwiftUI
 
 struct FacebookStyleEditor: View {
-    @State private var text: String = ""
+    @State var placeholder: String = ""
+    @Binding var Editor:String
+    @Binding var text: String
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Description")
-                .font(.system(size: 20, weight: .regular))
-                .padding(.horizontal)
-                .padding(.top)
+            Text(placeholder)
+                .font(Font.system(size: ControlWidth(12)))
+                .foregroundColor(.black.opacity(0.8))
             
-            TextEditor(text: $text)
+            TextEditor(text: $Editor)
                 .frame(height: 200)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(Color(.systemBackground))
-                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                )
-                .padding()
+                .disabled(true)
+                .background(rgbToColor(red: 255, green: 255, blue: 255))
                 .overlay(
-                    Text(text.isEmpty ? "We are the teams who create all of Facebook's products used by billions of people around the world. Want to build new features and improve existing products like Messenger, Video, Groups, News Feed, Search and more?" : "")
+                    Text(Editor.isEmpty ? text : "")
                         .foregroundColor(.gray)
                         .padding(.horizontal, 25)
                         .padding(.vertical, 25)
                         .allowsHitTesting(false),
                     alignment: .topLeading
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.gray.opacity(0.3),lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.05), radius: 15, x: 3, y: 4)
+                .frame(width: UIScreen.main.bounds.width - 40)
+                .cornerRadius(20)
         }
-        .background(Color(.systemGray6))
+        .background(Color(.white))
     }
 }
 
-#Preview {
-    FacebookStyleEditor()
-}
+

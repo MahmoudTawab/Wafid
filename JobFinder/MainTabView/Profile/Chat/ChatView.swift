@@ -46,6 +46,10 @@ struct ChatView: View {
     @State private var showLocationPicker = false
     @State private var selectedLocation: CLLocationCoordinate2D?
     
+    @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var uploadProgress: Double = 0
+    @State private var isUploading: Bool = false
+    
     var body: some View {
         VStack {
                 HStack(spacing: 10) {
@@ -76,16 +80,44 @@ struct ChatView: View {
                 .padding(.horizontal)
             
             ScrollView {
-                LazyVStack {
-                    ForEach(viewModel.messages) { message in
-                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage,recipientImage: recipientImage) { image in
-                            self.image = image
-                            showImageViewer = true
+                ScrollViewReader { proxy in
+                    LazyVStack {
+                        ForEach(viewModel.messages) { message in
+                            MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
+                                self.image = image
+                                showImageViewer = true
+                            }
+                            .padding(.horizontal)
+                            .id(message.id) // Add id for scrolling
                         }
-                        .padding(.horizontal)
                     }
-                }.padding(.top,5)
-            }.offset(y:-25)
+                    .padding(.top, 5)
+                    .onChange(of: viewModel.messages.count) { _ in
+                        withAnimation {
+                            proxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
+                        }
+                    }
+                    .onAppear {
+                        scrollProxy = proxy
+                        if let lastMessage = viewModel.messages.last {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
+                    }
+                }
+            }
+            .offset(y:-25)
+            
+            if isUploading {
+                HStack(spacing: 10) {
+                ActivityIndicator(isAnimating: $isUploading) // اللودر
+                    
+                Text("Loading...") // النص المكتوب بجانب اللودر
+                .font(.headline)
+                .foregroundColor(.gray)
+                Spacer()
+                }
+                .padding(.horizontal)
+            }
             
             HStack(alignment: .bottom) {
                 Button(action: {
@@ -209,49 +241,92 @@ struct ChatView: View {
     }
     
     ///
+    // Update the image upload function
     private func uploadSelectedImage() {
-        guard let image = selectedImage else { return }
-        
-        viewModel.createNewChat(messageType: .image,currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail,image: image)
-        selectedImage = nil
-    }
+         guard let image = selectedImage else { return }
+        withAnimation {
+            isUploading = true
+            uploadProgress = 0
+        }
+         
+         viewModel.createNewChat(
+             messageType: .image,
+             currentImage: currentImage,
+             recipientImage: recipientImage,
+             currentUserId: currentUserId,
+             currentMail: currentMail,
+             recipientId: recipientId,
+             recipientMail: recipientMail,
+             image: image
+         ) { progress in
+             uploadProgress = progress
+         } completion: {
+             isUploading = false
+             selectedImage = nil
+         }
+     }
     
-    ///
-    private func uploadVideo(_ videoURL: URL) {
-            guard let videoData = try? Data(contentsOf: videoURL) else { return }
-            
-            let storageRef = Storage.storage().reference()
-            let videoName = "\(UUID().uuidString).mp4"
-            let videoRef = storageRef.child("chat_videos/\(chatId)/\(videoName)")
-            
-            videoRef.putData(videoData) { metadata, error in
-                
-                if let error = error {
-                    print("Video upload error: \(error.localizedDescription)")
-                    return
+    // Update video upload function
+            private func uploadVideo(_ videoURL: URL) {
+                guard let videoData = try? Data(contentsOf: videoURL) else { return }
+                withAnimation {
+                    isUploading = true
+                    uploadProgress = 0
                 }
                 
-                videoRef.downloadURL { (url, error) in
-                    guard let downloadURL = url else {
-                        print("Could not get download URL")
+                let storageRef = Storage.storage().reference()
+                let videoName = "\(UUID().uuidString).mp4"
+                let videoRef = storageRef.child("chat_videos/\(chatId)/\(videoName)")
+                
+                let uploadTask = videoRef.putData(videoData, metadata: nil) { metadata, error in
+                    isUploading = false
+                    
+                    if let error = error {
+                        print("Video upload error: \(error.localizedDescription)")
                         return
                     }
                     
-                    viewModel.createNewChat(messageType: .image,currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail,videoUrl: downloadURL.absoluteString)
+                    videoRef.downloadURL { (url, error) in
+                        guard let downloadURL = url else {
+                            print("Could not get download URL")
+                            return
+                        }
+                        
+                        viewModel.createNewChat(
+                            messageType: .video,
+                            currentImage: currentImage,
+                            recipientImage: recipientImage,
+                            currentUserId: currentUserId,
+                            currentMail: currentMail,
+                            recipientId: recipientId,
+                            recipientMail: recipientMail,
+                            videoUrl: downloadURL.absoluteString
+                        )
+                    }
+                }
+                
+                uploadTask.observe(.progress) { snapshot in
+                    let percentComplete = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
+                    uploadProgress = percentComplete
                 }
             }
-    }
     
     
-    ///
-    private func uploadFile(_ fileURL: URL) {
+    // Update file upload function
+        private func uploadFile(_ fileURL: URL) {
             guard let fileData = try? Data(contentsOf: fileURL) else { return }
+            withAnimation {
+                isUploading = true
+                uploadProgress = 0
+            }
             
             let storageRef = Storage.storage().reference()
             let fileName = fileURL.lastPathComponent
             let fileRef = storageRef.child("chat_files/\(chatId)/\(fileName)")
             
-            fileRef.putData(fileData) { metadata, error in
+            let uploadTask = fileRef.putData(fileData, metadata: nil) { metadata, error in
+                isUploading = false
+                
                 if let error = error {
                     print("File upload error: \(error.localizedDescription)")
                     return
@@ -275,7 +350,13 @@ struct ChatView: View {
                     )
                 }
             }
+            
+            uploadTask.observe(.progress) { snapshot in
+                let percentComplete = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
+                uploadProgress = percentComplete
+            }
         }
+        
     
     // New method to send location
      private func sendLocation(_ location: CLLocationCoordinate2D) {
@@ -415,12 +496,28 @@ class ChatViewModel: ObservableObject {
             }
     }
     
-    func createNewChat(messageType: Message.MessageType = .text,currentImage: String, recipientImage: String, currentUserId: String, currentMail: String, recipientId: String, recipientMail: String, initialMessage: String = "",image: UIImage? = nil,videoUrl:String = "",fileURL: String = "") {
+    func createNewChat(
+        messageType: Message.MessageType = .text,
+        currentImage: String,
+        recipientImage: String,
+        currentUserId: String,
+        currentMail: String,
+        recipientId: String,
+        recipientMail: String,
+        initialMessage: String = "",
+        image: UIImage? = nil,
+        videoUrl: String = "",
+        fileURL: String = "",
+        progressCallback: ((Double) -> Void)? = nil,
+        completion: (() -> Void)? = nil
+    ) {
+        // إنشاء معرف فريد للمحادثة باستخدام معرفات المستخدمين
         let chatId = ChatService.createChatId(userId1: currentUserId, userId2: recipientId)
 
+        // إنشاء بيانات المحادثة
         let chatData = ChatListItem(
             id: chatId,
-            lastMessage: messageType == .text ? initialMessage : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location",
+            lastMessage: getLastMessageText(messageType: messageType, initialMessage: initialMessage),
             ProfileImage: [currentImage, recipientImage],
             lastMessageDate: Date(),
             participantIds: [currentUserId, recipientId],
@@ -428,52 +525,69 @@ class ChatViewModel: ObservableObject {
             recipientUnreadCounts: [recipientId: recipientUnreadCounts]
         )
 
-        
-        try? db.collection("chats").document(chatId).setData(from: chatData)
-
-        if messageType == .text {
-            sendMessage(
-                content: initialMessage,
-                sender: currentUserId,
-                recipientId: recipientId,
-                chatId: chatId,
-                messageType: messageType
-            )
-        }else if messageType == .image {
-            if let imag = image {
-                uploadImage(
-                    imag,
+        // حفظ بيانات المحادثة في Firestore
+        do {
+            try db.collection("chats").document(chatId).setData(from: chatData)
+            
+            // معالجة أنواع الرسائل المختلفة
+            switch messageType {
+            case .text:
+                sendMessage(
+                    content: initialMessage,
                     sender: currentUserId,
                     recipientId: recipientId,
-                    chatId: chatId
+                    chatId: chatId,
+                    messageType: .text
                 )
-            }
-        }else if messageType == .video {
+                completion?()
+                
+            case .image:
+                if let image = image {
+                    uploadImage(
+                        image,
+                        sender: currentUserId,
+                        recipientId: recipientId,
+                        chatId: chatId,
+                        progressCallback: progressCallback,
+                        completion: completion
+                    )
+                }
+                
+            case .video:
                 sendMessage(
-                content: videoUrl,
-                sender: currentUserId,
-                recipientId: recipientId,
-                chatId: chatId,
-                messageType: .video
+                    content: videoUrl,
+                    sender: currentUserId,
+                    recipientId: recipientId,
+                    chatId: chatId,
+                    messageType: .video
                 )
-        }else if messageType == .file {
-            sendMessage(
-            content: fileURL,
-            sender: currentUserId,
-            recipientId: recipientId,
-            chatId: chatId,
-            messageType: .file
-            )
-      }else  if messageType == .location {
-        sendMessage(
-            content: initialMessage,
-            sender: currentUserId,
-            recipientId: recipientId,
-            chatId: chatId,
-            messageType: .location
-        )
-    }
-        
+                completion?()
+                
+            case .file:
+                sendMessage(
+                    content: fileURL,
+                    sender: currentUserId,
+                    recipientId: recipientId,
+                    chatId: chatId,
+                    messageType: .file
+                )
+                completion?()
+                
+            case .location:
+                sendMessage(
+                    content: initialMessage,
+                    sender: currentUserId,
+                    recipientId: recipientId,
+                    chatId: chatId,
+                    messageType: .location
+                )
+                completion?()
+            }
+            
+        } catch {
+            print("Error creating chat: \(error.localizedDescription)")
+            completion?()
+        }
     }
 
     func sendMessage(content: String, sender: String, recipientId: String, chatId: String, messageType: Message.MessageType = .text) {
@@ -501,8 +615,9 @@ class ChatViewModel: ObservableObject {
                 recipientUnreadCounts[recipientId] = (recipientUnreadCounts[recipientId] ?? 0) + 1
                 self?.recipientUnreadCounts = (recipientUnreadCounts[recipientId] ?? 0)
 
+                let lastType = messageType == .text ? content : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location"
                 self?.db.collection("chats").document(chatId).updateData([
-                    "last_message": messageType == .text ? content : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location",
+                    "last_message": lastType,
                     "last_message_date": Date(),
                     "recipientUnreadCounts": recipientUnreadCounts
                 ])
@@ -512,49 +627,78 @@ class ChatViewModel: ObservableObject {
         }
     }
     
-    func uploadImage(_ image: UIImage, sender: String, recipientId: String, chatId: String) {
-        guard let imageData = image.jpegData(compressionQuality: 0.5) else { return }
-        
-        let storageRef = Storage.storage().reference()
-        let imageName = "\(UUID().uuidString).jpg"
-        let imageRef = storageRef.child("chat_images/\(chatId)/\(imageName)")
-        
-        imageRef.putData(imageData) { [weak self] metadata, error in
-            guard let self = self else { return }
+    private func getLastMessageText(messageType: Message.MessageType, initialMessage: String) -> String {
+        switch messageType {
+        case .text:
+            return initialMessage
+        case .image:
+            return "Sent an image"
+        case .video:
+            return "Sent a video"
+        case .file:
+            return "Sent a file"
+        case .location:
+            return "Sent a location"
+        }
+    }
+
+    
+    func uploadImage(_ image: UIImage,
+                        sender: String,
+                        recipientId: String,
+                        chatId: String,
+                        progressCallback: ((Double) -> Void)? = nil,
+                        completion: (() -> Void)? = nil) {
+            guard let imageData = image.jpegData(compressionQuality: 0.5) else { return }
             
-            if let error = error {
-                print("Image upload error: \(error.localizedDescription)")
-                return
-            }
+            let storageRef = Storage.storage().reference()
+            let imageName = "\(UUID().uuidString).jpg"
+            let imageRef = storageRef.child("chat_images/\(chatId)/\(imageName)")
             
-            imageRef.downloadURL { (url, error) in
-                guard let downloadURL = url else {
-                    print("Could not get download URL")
+            let uploadTask = imageRef.putData(imageData) { [weak self] metadata, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Image upload error: \(error.localizedDescription)")
+                    completion?()
                     return
                 }
                 
-                let message = Message(
-                    id: UUID().uuidString,
-                    sender: sender,
-                    recipientId: recipientId,
-                    content: downloadURL.absoluteString,
-                    timestamp: Date(),
-                    isRead: false,
-                    messageType: .image
-                )
-                
-                do {
-                    try self.db.collection("chats")
-                        .document(chatId)
-                        .collection("messages")
-                        .document(message.id)
-                        .setData(from: message)
-                } catch {
-                    print("Error sending image message: \(error.localizedDescription)")
+                imageRef.downloadURL { (url, error) in
+                    guard let downloadURL = url else {
+                        print("Could not get download URL")
+                        completion?()
+                        return
+                    }
+                    
+                    let message = Message(
+                        id: UUID().uuidString,
+                        sender: sender,
+                        recipientId: recipientId,
+                        content: downloadURL.absoluteString,
+                        timestamp: Date(),
+                        isRead: false,
+                        messageType: .image
+                    )
+                    
+                    do {
+                        try self.db.collection("chats")
+                            .document(chatId)
+                            .collection("messages")
+                            .document(message.id)
+                            .setData(from: message)
+                    } catch {
+                        print("Error sending image message: \(error.localizedDescription)")
+                    }
+                    completion?()
                 }
             }
+            
+            uploadTask.observe(.progress) { snapshot in
+                let percentComplete = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
+                progressCallback?(percentComplete)
+            }
         }
-    }
     
     func fetchUserStatus(userId: String) {
             let db = Firestore.firestore()

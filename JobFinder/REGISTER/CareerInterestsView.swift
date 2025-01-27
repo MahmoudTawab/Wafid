@@ -1,115 +1,139 @@
+//
+//  CareerInterestsView.swift
+//  Wafid
+//
+//  Created by almedadsoft on 27/01/2025.
+//
+
+
 import SwiftUI
 
 struct CareerInterestsView: View {
-    @State private var selectedCareerLevel: String?
-    @State private var selectedJobTypes: Set<String> = ["Full Time", "Part Time", "Shift Based"]
-    @State private var selectedWorkplaceSettings: Set<String> = []
+    @State private var selectedCareerLevel: String? = "Student"
+    @State private var selectedJobTypes: Set<String> = ["Full Time", "Part Time", "Freelance"]
+    @State private var selectedWorkplaceSettings: Set<String> = ["On-site","Part Time"]
     
-    let careerLevels = ["Student", "Entry Level", "Experienced", "Manager", "Senior Management", "Not Specified"]
+    let careerLevels = ["Student","Manager","Entry Level", "Experienced", "Not Specified","Senior Management"]
     let jobTypes = ["Full Time", "Part Time", "Freelance", "Shift Based", "Volunteering", "Summer Job"]
     let workplaceSettings = ["On-site", "Remote", "Hybrid"]
     
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var navigationManager: NavigationManager
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            // Header
-            HStack {
-                Button(action: {
-                    // Handle back action
-                }) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.black)
-                        .padding(8)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                }
-                
-                Text("What is your Career Interests?")
-                    .font(.title2)
-                    .fontWeight(.bold)
-            }
+        ZStack(alignment: .top) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 20) {
+                    
+                    HStack(spacing: 10) {
+                        Image("Icon")
+                            .resizable()
+                            .frame(width: 30,height: 30)
+                            .onTapGesture {self.presentationMode.wrappedValue.dismiss()}
+                        
+                        Text("What is your Career Interests?")
+                            .font(Font.system(size: ControlWidth(18)).weight(.heavy))
+                            .foregroundColor(.black)
+                        
+                        Spacer()
+                    }
             
             // Career Level Section
-            VStack(alignment: .leading, spacing: 16) {
-                Text("What's your current Career level ?")
-                    .font(.headline)
-                
-                FlowLayout(spacing: 8) {
-                    ForEach(careerLevels, id: \.self) { level in
-                        SelectableButton(
-                            title: level,
-                            isSelected: selectedCareerLevel == level,
-                            selectionType: .single,
-                            action: { selectedCareerLevel = level }
-                        )
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("What's your current Career level ?")
+                            .font(.headline)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHGrid(rows: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                                ForEach(careerLevels, id: \.self) { level in
+                                    SelectableButton(
+                                        title: level,
+                                        isSelected: selectedCareerLevel == level,
+                                        selectionType: .single,
+                                        action: { selectedCareerLevel = level }
+                                    )
+                                }
+                            }
+                            .frame(height: 100) // لضبط الارتفاع الإجمالي للشبكة
+                        }
                     }
-                }
-            }
             
             // Job Types Section
-            VStack(alignment: .leading, spacing: 16) {
-                Text("What type(s) of job are you open to ?")
-                    .font(.headline)
-                
-                FlowLayout(spacing: 8) {
-                    ForEach(jobTypes, id: \.self) { jobType in
-                        SelectableButton(
-                            title: jobType,
-                            isSelected: selectedJobTypes.contains(jobType),
-                            selectionType: .multi,
-                            action: {
-                                if selectedJobTypes.contains(jobType) {
-                                    selectedJobTypes.remove(jobType)
-                                } else {
-                                    selectedJobTypes.insert(jobType)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("What type(s) of job are you open to ?")
+                            .font(.headline)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHGrid(rows: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                                ForEach(jobTypes, id: \.self) { jobType in
+                                    SelectableButton(
+                                        title: jobType,
+                                        isSelected: selectedJobTypes.contains(jobType),
+                                        selectionType: .multi,
+                                        action: {
+                                            if selectedJobTypes.contains(jobType) {
+                                                selectedJobTypes.remove(jobType)
+                                            } else {
+                                                selectedJobTypes.insert(jobType)
+                                            }
+                                        }
+                                    )
                                 }
                             }
-                        )
+                            .frame(height: 100)
+                        }
                     }
-                }
-            }
             
             // Workplace Settings Section
-            VStack(alignment: .leading, spacing: 16) {
-                Text("What is your preferred workplace settings?")
-                    .font(.headline)
-                
-                FlowLayout(spacing: 8) {
-                    ForEach(workplaceSettings, id: \.self) { setting in
-                        SelectableButton(
-                            title: setting,
-                            isSelected: selectedWorkplaceSettings.contains(setting),
-                            selectionType: .multi,
-                            action: {
-                                if selectedWorkplaceSettings.contains(setting) {
-                                    selectedWorkplaceSettings.remove(setting)
-                                } else {
-                                    selectedWorkplaceSettings.insert(setting)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("What is your preferred workplace settings?")
+                            .font(.headline)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHGrid(rows: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
+                                ForEach(workplaceSettings, id: \.self) { setting in
+                                    SelectableButton(
+                                        title: setting,
+                                        isSelected: selectedWorkplaceSettings.contains(setting),
+                                        selectionType: .multi,
+                                        action: {
+                                            if selectedWorkplaceSettings.contains(setting) {
+                                                selectedWorkplaceSettings.remove(setting)
+                                            } else {
+                                                selectedWorkplaceSettings.insert(setting)
+                                            }
+                                        }
+                                    )
                                 }
                             }
-                        )
+                            .frame(height: 100)
+                        }
                     }
-                }
-            }
             
             Spacer()
             
-            // Next Button
             Button(action: {
-                // Handle next action
+            navigationManager.navigate(to: .FirstScreen)
             }) {
-                Text("Next")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color(UIColor(red: 0.76, green: 0.6, blue: 0.42, alpha: 1)))
-                    )
+            Text("Next")
+                .font(.system(size: ControlWidth(16), weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(rgbToColor(red: 193, green: 140, blue: 70))
+                .cornerRadius(15)
             }
-            .padding(.bottom)
+            .padding(.bottom, 10)
+        }
+        .padding(.top, 50)
+        .frame(height: UIScreen.main.bounds.height - 50)
+        }
         }
         .padding()
+        .edgesIgnoringSafeArea(.all)
+        .preferredColorScheme(.light)
+        .background(rgbToColor(red: 255, green: 255, blue: 255))
+        .frame(width: UIScreen.main.bounds.width)
     }
 }
 
@@ -128,11 +152,14 @@ struct SelectableButton: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 if selectionType == .multi && isSelected {
-                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.white)
+                }else if selectionType == .multi && !isSelected {
+                    Image(systemName: "plus.circle")
+                        .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
                 }
                 
-                Text(title)
+                LocalizedText(key:title)
                     .font(.subheadline)
             }
             .padding(.horizontal, 16)
@@ -140,81 +167,18 @@ struct SelectableButton: View {
             .background(
                 Capsule()
                     .fill(isSelected ? 
-                          Color(UIColor(red: 0.76, green: 0.6, blue: 0.42, alpha: 1)) :
+                          rgbToColor(red: 193, green: 140, blue: 70) :
                           Color.white)
             )
             .overlay(
                 Capsule()
-                    .stroke(Color(UIColor(red: 0.76, green: 0.6, blue: 0.42, alpha: 1)),
+                    .stroke(rgbToColor(red: 193, green: 140, blue: 70),
                            lineWidth: isSelected ? 0 : 1)
             )
-            .foregroundColor(isSelected ? .white : Color(UIColor(red: 0.76, green: 0.6, blue: 0.42, alpha: 1)))
-        }
-    }
-}
-
-struct FlowLayout: Layout {
-    var spacing: CGFloat
-    
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(
-            in: proposal.replacingUnspecifiedDimensions().width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        return result.size
-    }
-    
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(
-            in: bounds.width,
-            subviews: subviews,
-            spacing: spacing
-        )
-        for index in subviews.indices {
-            let point = result.origins[index]
-            subviews[index].place(
-                at: CGPoint(x: point.x + bounds.minX, y: point.y + bounds.minY),
-                proposal: ProposedViewSize(result.sizes[index])
-            )
+            .foregroundColor(isSelected ? .white : rgbToColor(red: 193, green: 140, blue: 70))
         }
     }
     
-    struct FlowResult {
-        var origins: [CGPoint]
-        var sizes: [CGSize]
-        var size: CGSize
-        
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var origins: [CGPoint] = []
-            var sizes: [CGSize] = []
-            
-            var currentPosition: CGPoint = .zero
-            var currentRow: CGFloat = 0
-            var maxHeight: CGFloat = 0
-            
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                if currentPosition.x + size.width > maxWidth && !origins.isEmpty {
-                    currentPosition.x = 0
-                    currentPosition.y += currentRow + spacing
-                    currentRow = 0
-                }
-                
-                origins.append(currentPosition)
-                sizes.append(size)
-                
-                currentRow = max(currentRow, size.height)
-                maxHeight = max(maxHeight, currentPosition.y + size.height)
-                
-                currentPosition.x += size.width + spacing
-            }
-            
-            self.origins = origins
-            self.sizes = sizes
-            self.size = CGSize(width: maxWidth, height: maxHeight)
-        }
-    }
 }
 
 struct CareerInterestsView_Previews: PreviewProvider {
