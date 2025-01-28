@@ -49,20 +49,19 @@ struct NewMessageView: View {
                     // Search field stays the same
                     if vm.ShowSearch {
                         HStack(alignment: .center) {
+                            HStack {
                             TextField("Search", text: $vm.searchText)
                                 .padding(10)
                                 .tint(.gray)
-                                .background(rgbToColor(red: 255, green: 247, blue: 236))
-                                .cornerRadius(20)
-                                .overlay(
-                                    HStack {
-                                        Spacer()
-                                        Image(systemName: "magnifyingglass")
-                                            .padding(.trailing, 10)
-                                            .foregroundColor(.gray)
-                                    }
-                                )
-                                .frame(height: 44)
+            
+                                Spacer()
+                                Image("search-normal")
+                                    .padding(.trailing, 10)
+                                    .foregroundColor(.gray)
+                            }
+                            .background(rgbToColor(red: 255, green: 247, blue: 236))
+                            .cornerRadius(20)
+                            .frame(height: 44)
                             
                             Button(action: {withAnimation {vm.ShowSearch = false}}) {
                                 Image(systemName: "xmark")

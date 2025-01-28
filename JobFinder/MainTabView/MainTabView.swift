@@ -15,8 +15,13 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                HomeView()
-                    .tag(0)
+                if IsEmployee {
+                    HomeEmployeeView()
+                        .tag(0)
+                }else{
+                    HomeCompanyView()
+                        .tag(0)
+                }
                 
                 BriefcaseView()
                     .tag(1)
@@ -63,7 +68,7 @@ struct CustomTabBar: View {
                         .foregroundColor(selectedTab == index ?
                             rgbToColor(red: 193, green: 140, blue: 70) :
                             rgbToColor(red: 202, green: 203, blue: 206))
-                    
+
                     Circle()
                         .fill(rgbToColor(red: 193, green: 140, blue: 70))
                         .frame(width: 6, height: 6)

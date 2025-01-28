@@ -25,6 +25,7 @@ enum AppViews: Hashable {
     case OTPVerificationView(email: String,TransToken:String, user_id:String,newPassword:String,IsGomeInProfile:Bool)
     case CongratsScreen
     case MainTabView
+    case JobRecommendationView(jobs_id: String)
     case SettingsView
     case ChatUser
     case NewMessageView

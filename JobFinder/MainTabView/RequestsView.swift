@@ -18,7 +18,7 @@ struct RequestsView: View {
                         .frame(width: 40, height: 40)
                     
                     Text( "Requests")
-                        .font(.system(size: ControlWidth(22), weight: .bold))
+                        .font(.system(size: ControlWidth(20), weight: .bold))
                     
                     Spacer()
                 }

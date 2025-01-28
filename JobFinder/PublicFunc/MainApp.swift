@@ -131,6 +131,13 @@ struct MainApp: View {
                             .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
                             .environmentObject(localizationManager) // تمرير localizationManager
                         
+                    case .JobRecommendationView(let jobs_id):
+                        JobRecommendationView(jobs_id: jobs_id)
+                            .navigationBarTitle("", displayMode: .inline)
+                            .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
+                            .environmentObject(localizationManager) // تمرير localizationManager
+                        
+                        
                     case .SettingsView:
                         SettingsView()
                             .navigationBarTitle("", displayMode: .inline)

@@ -15,7 +15,9 @@ struct LoginScreen: View {
     @State private var showingAlert = false
     @State private var showLoadingIndicator = false
     @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
     @AppStorage("user_mail") var user_mail: String = ""
+    @AppStorage("fullName") var fullName : String = ""
 
     @StateObject private var viewModel = LoginViewModel()
     @State private var emailError: TextFieldError = .empty
@@ -219,10 +221,13 @@ struct LoginScreen: View {
                                         
                       if success && viewModel.userResult?.isValidate == true {
                           DispatchQueue.main.async {
+                              print(viewModel.userResult ?? "")
                               if let id = viewModel.userResult?.id ,let email = viewModel.userResult?.email ,let role = viewModel.userResult?.role {
                                   user_id = id
                                   user_mail = email
+                                  fullName = viewModel.userResult?.fullName ?? ""
                                   IsEmployee = role == "employee" ? true:false
+                                  company_id = viewModel.userResult?.company_id ?? ""
                                   navigationManager.navigate(to: .MainTabView)
                               }
                           }
