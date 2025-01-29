@@ -19,30 +19,32 @@ class OnlineStatusService {
     private var userId: String?
     
     func setupPresence(userId: String) {
-        guard statusRef == nil else { return }
-        self.userId = userId
-        statusRef = db.collection("user_status").document(userId)
-        
-        // التحقق من وجود الوثيقة أولاً
-        statusRef?.getDocument { [weak self] snapshot, error in
-            if let error = error {
-                print("Error checking document: \(error.localizedDescription)")
-                return
-            }
+        if userId != "" {
+            guard statusRef == nil else { return }
+            self.userId = userId
+            statusRef = db.collection("user_status").document(userId)
             
-            if let snapshot = snapshot, !snapshot.exists {
-                // إنشاء الوثيقة إذا لم تكن موجودة
-                self?.createInitialUserStatus(userId: userId) { success in
-                    if success {
-                        // بعد إنشاء الوثيقة بنجاح، قم بتحديث الحالة
-                        self?.updateOnlineStatus(isOnline: true, updateLastSeen: false)
-                        self?.setupNotifications()
-                    }
+            // التحقق من وجود الوثيقة أولاً
+            statusRef?.getDocument { [weak self] snapshot, error in
+                if let error = error {
+                    print("Error checking document: \(error.localizedDescription)")
+                    return
                 }
-            } else {
-                // الوثيقة موجودة بالفعل، قم بتحديث الحالة مباشرة
-                self?.updateOnlineStatus(isOnline: true, updateLastSeen: false)
-                self?.setupNotifications()
+                
+                if let snapshot = snapshot, !snapshot.exists {
+                    // إنشاء الوثيقة إذا لم تكن موجودة
+                    self?.createInitialUserStatus(userId: userId) { success in
+                        if success {
+                            // بعد إنشاء الوثيقة بنجاح، قم بتحديث الحالة
+                            self?.updateOnlineStatus(isOnline: true, updateLastSeen: false)
+                            self?.setupNotifications()
+                        }
+                    }
+                } else {
+                    // الوثيقة موجودة بالفعل، قم بتحديث الحالة مباشرة
+                    self?.updateOnlineStatus(isOnline: true, updateLastSeen: false)
+                    self?.setupNotifications()
+                }
             }
         }
     }

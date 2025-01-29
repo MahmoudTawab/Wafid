@@ -221,8 +221,8 @@ struct ProfileEmployeeView: View {
                 Text(viewModel.userProfile?.occupation ?? "")
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
-                
-                Text("Experience : \(viewModel.userProfile?.workExperience ?? "") Years ( \(viewModel.userProfile?.qualification ?? "") )")
+
+                Text(viewModel.userProfile?.qualification ?? "")
                     .font(.system(size: ControlWidth(14)))
                     .foregroundColor(.gray)
             }
@@ -351,7 +351,7 @@ struct ProfileEmployeeView: View {
                 phoneError = error
             }
                         
-            TextFieldCustom(defaultText: $birthDate,title: "Date of birth", placeholder: "Select your birth date", isRequired: true, type: .date) { text, error in
+            TextFieldCustom(defaultText: $birthDate,title: "Date of birth", placeholder: "Select your birth date", isRequired: true, type: .date,IsShowCountry : false) { text, error in
                 birthDate = text
                 birthDateError = error
             }

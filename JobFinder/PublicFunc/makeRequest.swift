@@ -76,7 +76,6 @@ func makeRequestGet(
 }
 
 
-
 func makeRequestMultiPost(ApiToken: String, dateToken: String, tableNames: [String], multiData: [[(String, Any)]]) async throws -> Any {
     let url = URL(string: "https://framework.md-license.com:8093/emsserver.dll/ERPDatabaseWorkFunctions/DoMultiTransaction")!
     

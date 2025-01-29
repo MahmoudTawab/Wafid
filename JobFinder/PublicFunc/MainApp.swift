@@ -64,6 +64,13 @@ struct MainApp: View {
                             .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
                             .environmentObject(localizationManager) // تمرير localizationManager
                         
+                    case .UserDetailsView(let UserInfo):
+                            UserDetailsView(user: UserInfo)
+                            .addKeyboardToolbar() // إضافة شريط لوحة المفاتيح هنا
+                            .navigationBarTitle("", displayMode: .inline)
+                            .toolbarBackground(.clear, for: .navigationBar) // جعل شريط التنقل شفافًا
+                            .environmentObject(localizationManager)
+                        
                     case .ProfileCompanyScreen:
                         ProfileCompanyScreen()
                             .addKeyboardToolbar() // إضافة شريط لوحة المفاتيح هنا

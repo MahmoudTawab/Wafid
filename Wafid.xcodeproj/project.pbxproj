@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D12D6A962D3FAEEB007AC138 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D12D6A952D3FAEEB007AC138 /* SDWebImageSwiftUI */; };
-		D1C653612D3FA51C00390454 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D1C653602D3FA51C00390454 /* FirebaseAuth */; };
-		D1C653632D3FA52F00390454 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D1C653622D3FA52F00390454 /* FirebaseFirestore */; };
-		D1C653652D3FA54000390454 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D1C653642D3FA54000390454 /* FirebaseStorage */; };
+		D12A753B2D4A74E8005E435C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D12A753A2D4A74E8005E435C /* FirebaseAuth */; };
+		D12A753D2D4A74E8005E435C /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = D12A753C2D4A74E8005E435C /* FirebaseCore */; };
+		D12A753F2D4A74E8005E435C /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D12A753E2D4A74E8005E435C /* FirebaseFirestore */; };
+		D12A75412D4A74E8005E435C /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75402D4A74E8005E435C /* FirebaseMessaging */; };
+		D12A75432D4A74E8005E435C /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75422D4A74E8005E435C /* FirebaseStorage */; };
+		D12A75462D4A758C005E435C /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75452D4A758C005E435C /* SDWebImageSwiftUI */; };
+		D12A75502D4A9C4E005E435C /* StreamVideo in Frameworks */ = {isa = PBXBuildFile; productRef = D12A754F2D4A9C4E005E435C /* StreamVideo */; };
+		D12A75522D4A9C4E005E435C /* StreamVideoSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75512D4A9C4E005E435C /* StreamVideoSwiftUI */; };
+		D12A75542D4A9C4E005E435C /* StreamVideoUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75532D4A9C4E005E435C /* StreamVideoUIKit */; };
 		D1FF6E812D34FFB20053EA74 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D1FF6E7F2D34FFB20053EA74 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
@@ -29,7 +34,7 @@
 
 /* Begin PBXFileReference section */
 		D109C72C2D33EEC600BCB02C /* Wafid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wafid.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D1D5B9102D46391F00B97ACD /* Wafid-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Wafid-Info.plist"; sourceTree = "<group>"; };
+		D12A754B2D4A83E9005E435C /* Wafid-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Wafid-Info.plist"; sourceTree = "<group>"; };
 		D1FF6E802D34FFB20053EA74 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D1FF6E822D34FFB70053EA74 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -47,10 +52,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D12D6A962D3FAEEB007AC138 /* SDWebImageSwiftUI in Frameworks */,
-				D1C653612D3FA51C00390454 /* FirebaseAuth in Frameworks */,
-				D1C653632D3FA52F00390454 /* FirebaseFirestore in Frameworks */,
-				D1C653652D3FA54000390454 /* FirebaseStorage in Frameworks */,
+				D12A75462D4A758C005E435C /* SDWebImageSwiftUI in Frameworks */,
+				D12A753F2D4A74E8005E435C /* FirebaseFirestore in Frameworks */,
+				D12A75542D4A9C4E005E435C /* StreamVideoUIKit in Frameworks */,
+				D12A75522D4A9C4E005E435C /* StreamVideoSwiftUI in Frameworks */,
+				D12A75412D4A74E8005E435C /* FirebaseMessaging in Frameworks */,
+				D12A753D2D4A74E8005E435C /* FirebaseCore in Frameworks */,
+				D12A753B2D4A74E8005E435C /* FirebaseAuth in Frameworks */,
+				D12A75502D4A9C4E005E435C /* StreamVideo in Frameworks */,
+				D12A75432D4A74E8005E435C /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,7 +70,7 @@
 		D109C7232D33EEC600BCB02C = {
 			isa = PBXGroup;
 			children = (
-				D1D5B9102D46391F00B97ACD /* Wafid-Info.plist */,
+				D12A754B2D4A83E9005E435C /* Wafid-Info.plist */,
 				D1FF6E7F2D34FFB20053EA74 /* Localizable.strings */,
 				D109C72E2D33EEC600BCB02C /* JobFinder */,
 				D1C6535F2D3FA51C00390454 /* Frameworks */,
@@ -104,10 +114,15 @@
 			);
 			name = Wafid;
 			packageProductDependencies = (
-				D1C653602D3FA51C00390454 /* FirebaseAuth */,
-				D1C653622D3FA52F00390454 /* FirebaseFirestore */,
-				D1C653642D3FA54000390454 /* FirebaseStorage */,
-				D12D6A952D3FAEEB007AC138 /* SDWebImageSwiftUI */,
+				D12A753A2D4A74E8005E435C /* FirebaseAuth */,
+				D12A753C2D4A74E8005E435C /* FirebaseCore */,
+				D12A753E2D4A74E8005E435C /* FirebaseFirestore */,
+				D12A75402D4A74E8005E435C /* FirebaseMessaging */,
+				D12A75422D4A74E8005E435C /* FirebaseStorage */,
+				D12A75452D4A758C005E435C /* SDWebImageSwiftUI */,
+				D12A754F2D4A9C4E005E435C /* StreamVideo */,
+				D12A75512D4A9C4E005E435C /* StreamVideoSwiftUI */,
+				D12A75532D4A9C4E005E435C /* StreamVideoUIKit */,
 			);
 			productName = JobFinder;
 			productReference = D109C72C2D33EEC600BCB02C /* Wafid.app */;
@@ -139,8 +154,9 @@
 			mainGroup = D109C7232D33EEC600BCB02C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D1C327F12D3FA3DD001318C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				D1C6536B2D3FADE500390454 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D12A75442D4A758C005E435C /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+				D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D109C72D2D33EEC600BCB02C /* Products */;
@@ -314,6 +330,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Wafid-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -354,6 +372,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Wafid-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -404,7 +424,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D1C327F12D3FA3DD001318C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+		D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
@@ -412,7 +432,7 @@
 				minimumVersion = 11.7.0;
 			};
 		};
-		D1C6536B2D3FADE500390454 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+		D12A75442D4A758C005E435C /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
 			requirement = {
@@ -420,28 +440,61 @@
 				minimumVersion = 3.1.3;
 			};
 		};
+		D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/GetStream/stream-video-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.15.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D12D6A952D3FAEEB007AC138 /* SDWebImageSwiftUI */ = {
+		D12A753A2D4A74E8005E435C /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D1C6536B2D3FADE500390454 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
-			productName = SDWebImageSwiftUI;
-		};
-		D1C653602D3FA51C00390454 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D1C327F12D3FA3DD001318C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
 		};
-		D1C653622D3FA52F00390454 /* FirebaseFirestore */ = {
+		D12A753C2D4A74E8005E435C /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D1C327F12D3FA3DD001318C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		D12A753E2D4A74E8005E435C /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
 		};
-		D1C653642D3FA54000390454 /* FirebaseStorage */ = {
+		D12A75402D4A74E8005E435C /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D1C327F12D3FA3DD001318C9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		D12A75422D4A74E8005E435C /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		D12A75452D4A758C005E435C /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A75442D4A758C005E435C /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+		D12A754F2D4A9C4E005E435C /* StreamVideo */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */;
+			productName = StreamVideo;
+		};
+		D12A75512D4A9C4E005E435C /* StreamVideoSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */;
+			productName = StreamVideoSwiftUI;
+		};
+		D12A75532D4A9C4E005E435C /* StreamVideoUIKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */;
+			productName = StreamVideoUIKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

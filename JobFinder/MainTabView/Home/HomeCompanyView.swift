@@ -42,7 +42,7 @@ struct HomeCompanyView: View {
                             .tint(.gray)
                             .frame(height: 44)
                             .onChange(of: viewModel.searchText) { _ in
-                                
+                                viewModel.handleSearchTextChange()
                             }
                             
                             Spacer()
@@ -62,12 +62,22 @@ struct HomeCompanyView: View {
                     } .padding(.bottom, 8)
                     
 
-                    // Vacancies Section
-                    VacanciesSection(jobs: viewModel.JobResponse?.jobs ?? [])
-                               
-                    // Recent Applications Section
-                    RecentApplicationsSection(applications: viewModel.Applications ?? [])
-
+                    if let searchResults = viewModel.searchResults {
+                        
+                        SearchResultsView(users: searchResults) { User in
+                            navigationManager.navigate(to: .UserDetailsView(user: User))
+                        }
+                        
+                    }else if viewModel.JobResponse?.jobs == nil && viewModel.Applications == nil {
+                        Text("No jobs available")
+                            .foregroundColor(.gray)
+                    }else{
+                        // Vacancies Section
+                        VacanciesSection(jobs: viewModel.JobResponse?.jobs ?? [])
+                        
+                        // Recent Applications Section
+                        RecentApplicationsSection(applications: viewModel.Applications ?? [])
+                    }
                     
                     Spacer()
                 }
@@ -91,8 +101,7 @@ struct HomeCompanyView: View {
                     TypeToast: .error,
                     FrameHeight: .constant(65)
                 )
-                .padding(.top,50)
-                .frame(width: UIScreen.main.bounds.width - 30)
+                .padding(.top)
             }
         }
         .preferredColorScheme(.light)
@@ -102,8 +111,16 @@ struct HomeCompanyView: View {
             await viewModel.fetchData2()
         }
 
+        .onTapGesture {
+            hideKeyboard()
+        }
     }
     
+    // إخفاء لوحة المفاتيح
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                      to: nil, from: nil, for: nil)
+    }
     
     private var loadingOverlay: some View {
         ZStack {
@@ -194,7 +211,8 @@ struct VacancyCard: View {
 
 struct RecentApplicationsSection: View {
     let applications: [Application]
-    
+    @EnvironmentObject var navigationManager: NavigationManager
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center,spacing: 10) {
@@ -211,7 +229,9 @@ struct RecentApplicationsSection: View {
             
             ForEach(applications, id: \.id) { application in
                 if let userInfo = application.userInfo?.first {
-                    ApplicantCard(application: application, userInfo: userInfo)
+                    ApplicantCard(application: application, userInfo: userInfo) { User in
+                        navigationManager.navigate(to: .UserDetailsView(user: User))
+                    }
                 }
             }
         }
@@ -221,6 +241,7 @@ struct RecentApplicationsSection: View {
 struct ApplicantCard: View {
     let application: Application
     let userInfo: UserInfo
+    let onTap: (_ User:UserInfo) -> Void
     @State var userImageProfile : UIImage?
 
     var body: some View {
@@ -234,9 +255,9 @@ struct ApplicantCard: View {
                 
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(userInfo.fullName)
+                    Text(userInfo.fullName ?? "")
                         .font(.headline)
-                    Text(userInfo.occupation)
+                    Text(userInfo.occupation ?? "")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     if let experience = userInfo.workExperience?.first {
@@ -244,7 +265,7 @@ struct ApplicantCard: View {
                             .font(.caption)
                             .foregroundColor(.gray)
                     }else{
-                        Text(userInfo.email)
+                        Text(userInfo.email ?? "")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
@@ -266,7 +287,7 @@ struct ApplicantCard: View {
             
             HStack(spacing: 20) {
                 Button("Job Details") {
-                    // Action
+                    onTap(userInfo)
                 }
                 .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
                 .frame(maxWidth: .infinity)
@@ -278,7 +299,7 @@ struct ApplicantCard: View {
                 )
                 
                 Button("See Details") {
-                    // Action
+                    onTap(userInfo)
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
@@ -294,8 +315,14 @@ struct ApplicantCard: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.08), radius: 5, x: -2, y: 2)
         
+        .onTapGesture {
+        onTap(userInfo)
+        }
+        
         .onAppear {
-            CollApiDownloadFile(fileId: "\(userInfo.profileAttachID)")
+            if let profile = userInfo.profileAttachID {
+                CollApiDownloadFile(fileId: "\(profile)")
+            }
         }
     }
     
@@ -323,6 +350,64 @@ struct ApplicantCard: View {
                 }
             } catch {
                 print("Error downloading file:", error)
+            }
+        }
+    }
+}
+
+struct SearchResultsView: View {
+    let users: [UserInfo]
+    let onTap: (_ User:UserInfo) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading,spacing: 16) {
+            ForEach(users, id: \.id) { user in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Spacer()
+                        
+                        Text(user.fullName ?? "No Name")
+                            .font(.headline)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity)
+                    }
+
+                    if let occupation = user.occupation {
+                        Text("Occupation: \(occupation)")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                    }
+                    
+                    if let email = user.email {
+                        Text("Email: \(email)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                    }
+                    
+                    if let qualification = user.qualification {
+                        Text("Qualification: \(qualification)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                    }
+                    
+                    if let country = user.country {
+                        Text("Country: \(country)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+                .padding()
+                .background(Color.white)
+                .cornerRadius(12)
+                .frame(width: UIScreen.main.bounds.width - 30) // ضبط العرض هنا فقط
+                .shadow(color: Color.black.opacity(0.08), radius: 5, x: -2, y: 2)
+                .onTapGesture {
+                        onTap(user)
+                }
             }
         }
     }
@@ -377,25 +462,28 @@ struct Application: Codable {
 }
 
 struct UserInfo: Codable {
-    var id: Int
-    var fullName: String
-    var phone: String
-    var email: String
-    var occupation: String
-    var profileAttach: String
-    var profileAttachID: Int
-    var releaseDate: String
-    var country: String
-    var expiryDate: String
-    var nationalID: String
-    var nationalIDAttachID: Int
-    var nationalIDAttach: String
-    var bloodType: String
-    var birthDate: String
-    var relativesNumber: String
-    var qualification: String
-    var birthPlace: String
-    var types: [String]
+    var id: Int?
+    var profileAttachID: Int?
+    var nationalIDAttachID: Int?
+    var employeeID: Int?
+    var subscribed: Int?
+    
+    var fullName: String?
+    var phone: String?
+    var email: String?
+    var occupation: String?
+    var profileAttach: String?
+    var releaseDate: String?
+    var country: String?
+    var expiryDate: String?
+    var nationalID: String?
+    var nationalIDAttach: String?
+    var bloodType: String?
+    var birthDate: String?
+    var relativesNumber: String?
+    var qualification: String?
+    var birthPlace: String?
+    var types: [String]?
     var links: [UserLink]?
     var education: [Education]?
     var certifications: [Certification]?
@@ -403,7 +491,11 @@ struct UserInfo: Codable {
     var workExperience: [WorkExperience]?
 
     enum CodingKeys: String, CodingKey {
-        case id, fullName, phone, email, occupation
+        case id
+        case fullName = "fullName"
+        case phone
+        case email
+        case occupation
         case profileAttach = "profile_attach"
         case profileAttachID = "profile_attach_id"
         case releaseDate = "release_date"
@@ -418,9 +510,56 @@ struct UserInfo: Codable {
         case qualification
         case birthPlace = "birth_place"
         case links, types, education, certifications, trainings, workExperience
+        case subscribed = "Subscribed"
+        case employeeID = "employee_id"
     }
     
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // محاولة فك الترميز باستخدام عدة أنواع
+        id = try Self.decodeIntOrString(forKey: .id, from: container)
+        profileAttachID = try Self.decodeIntOrString(forKey: .profileAttachID, from: container)
+        nationalIDAttachID = try Self.decodeIntOrString(forKey: .nationalIDAttachID, from: container)
+        employeeID = try Self.decodeIntOrString(forKey: .employeeID, from: container)
+        subscribed = try Self.decodeIntOrString(forKey: .subscribed, from: container)
+
+        fullName = try? container.decode(String.self, forKey: .fullName)
+        phone = try? container.decode(String.self, forKey: .phone)
+        email = try? container.decode(String.self, forKey: .email)
+        occupation = try? container.decode(String.self, forKey: .occupation)
+        profileAttach = try? container.decode(String.self, forKey: .profileAttach)
+        releaseDate = try? container.decode(String.self, forKey: .releaseDate)
+        country = try? container.decode(String.self, forKey: .country)
+        expiryDate = try? container.decode(String.self, forKey: .expiryDate)
+        nationalID = try? container.decode(String.self, forKey: .nationalID)
+        nationalIDAttach = try? container.decode(String.self, forKey: .nationalIDAttach)
+        bloodType = try? container.decode(String.self, forKey: .bloodType)
+        birthDate = try? container.decode(String.self, forKey: .birthDate)
+        relativesNumber = try? container.decode(String.self, forKey: .relativesNumber)
+        qualification = try? container.decode(String.self, forKey: .qualification)
+        birthPlace = try? container.decode(String.self, forKey: .birthPlace)
+        types = try? container.decode([String].self, forKey: .types)
+        links = try? container.decode([UserLink].self, forKey: .links)
+        education = try? container.decode([Education].self, forKey: .education)
+        certifications = try? container.decode([Certification].self, forKey: .certifications)
+        trainings = try? container.decode([Training].self, forKey: .trainings)
+        workExperience = try? container.decode([WorkExperience].self, forKey: .workExperience)
+    }
+
+    // دالة لتحويل القيم بين `String` و `Int`
+    private static func decodeIntOrString(forKey key: CodingKeys, from container: KeyedDecodingContainer<CodingKeys>) throws -> Int? {
+        if let intValue = try? container.decode(Int.self, forKey: key) {
+            return intValue
+        }
+        if let stringValue = try? container.decode(String.self, forKey: key), let intValue = Int(stringValue) {
+            return intValue
+        }
+        return nil
+    }
 }
+
+
 
 struct UserLink: Codable {
     var id: Int
@@ -612,13 +751,103 @@ class HomeViewCompanyViewModel: ObservableObject {
     @Published var showLoadingIndicator = false
     @Published var JobResponse : JobsResponse?
     @Published var Applications:[Application]?
+    @Published var searchResults: [UserInfo]? // Add this to store search results
+    private var searchTask: Task<Void, Never>?
     @AppStorage("company_id") var company_id: String = ""
     
+    private var searchProcedureName = "z7vRFfNqckr750dGEDmBng=="
     private var procedureName1 = "IMfO9Vv+kGb3kJP2+Q/+2WLmSr2EulkjyPDfPgaa/xo="
     private var procedureName2 = "8etOwuUVGWXcbyLWnYnmNQy0dveJKEiD+wonV8PgGbM="
 
+    func handleSearchTextChange() {
+        // Cancel any existing search task
+        searchTask?.cancel()
+        
+        // Create a new search task with debounce
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds delay
+            
+            // Check if the task was cancelled
+            if !Task.isCancelled {
+                await searchJobs()
+            }
+        }
+    }
+    
+    func searchJobs() async {
+        guard !Task.isCancelled && !searchText.isEmpty else {
+            searchResults = nil
+            return
+        }
+        
+        alertMessage = nil
+        
+        let orderedParameters: [(String, Any)] = [
+            ("value", searchText)
+        ]
+        
+        let parameters = Dictionary(uniqueKeysWithValues: orderedParameters)
+        
+        do {
+            let response = try await makeRequestGet(
+                ProcedureName: searchProcedureName,
+                ApiToken: ApiToken,
+                dateToken: dateToken,
+                parametersValues: parameters,
+                orderedKeys: orderedParameters
+            )
+            
+            if !Task.isCancelled {
+                if let encrypted = response as? [String: Any],
+                   let dataString = encrypted["Data"] as? String {
+                    if let decryptedData = AES256Encryption.decrypt(dataString) as? [String: Any],
+                       let resultArray = decryptedData["Result"] as? [[String: Any]] {
+                        
+                        let decoder = JSONDecoder()
+                        do {
+                            let jsonData = try JSONSerialization.data(withJSONObject: resultArray)
+                            let users = try decoder.decode([UserInfo].self, from: jsonData)
+                            
+                            
+                            // Filter results based on search text
+                            let filteredUsers = users.filter { user in
+                                let searchLower = searchText.lowercased()
+                                return (user.fullName?.lowercased().contains(searchLower) ?? false) ||
+                                       (user.email?.lowercased().contains(searchLower) ?? false) ||
+                                       (user.occupation?.lowercased().contains(searchLower) ?? false) ||
+                                       (user.qualification?.lowercased().contains(searchLower) ?? false) ||
+                                       (user.country?.lowercased().contains(searchLower) ?? false)
+                            }
+                            
+                            await MainActor.run {
+                                self.searchResults = filteredUsers
+                            }
+                        } catch {
+                            await MainActor.run {
+                                self.alertMessage = "Error parsing search results: \(error.localizedDescription)"
+                                self.showingAlert = true
+                            }
+                        }
+                    }
+                }
+            }
+        } catch {
+            if !Task.isCancelled {
+                await MainActor.run {
+                    self.alertMessage = "Search failed: \(error.localizedDescription)"
+                    self.showingAlert = true
+                }
+            }
+        }
+    }
+    
     
     func fetchData1() async {
+        
+        if let applications = Applications, !applications.isEmpty {
+            return
+        }
+        
         showLoadingIndicator = true
         alertMessage = nil
         
@@ -676,6 +905,10 @@ class HomeViewCompanyViewModel: ObservableObject {
     }
     
     func fetchData2() async {
+        if let jobResponse = JobResponse {
+            return
+        }
+        
         showLoadingIndicator = true
         alertMessage = nil
         
@@ -726,9 +959,6 @@ class HomeViewCompanyViewModel: ObservableObject {
             alertMessage = "Failed to fetch Data: \(error.localizedDescription)"
         }
     }
-    
-    
-
 }
 
 

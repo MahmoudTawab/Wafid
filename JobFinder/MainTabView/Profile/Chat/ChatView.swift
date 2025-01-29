@@ -50,6 +50,8 @@ struct ChatView: View {
     @State private var uploadProgress: Double = 0
     @State private var isUploading: Bool = false
     
+    @StateObject private var callManager = CallManager.shared
+
     var body: some View {
         VStack {
                 HStack(spacing: 10) {
@@ -75,6 +77,39 @@ struct ChatView: View {
                     }
                     
                     Spacer()
+                    
+                    HStack(spacing: 25) {
+                        Button(action: {
+                            callManager.startVideoCall(
+                                currentUserId: currentUserId,
+                                recipientUserId: recipientId,
+                                callerName: currentMail,
+                                receiverName: recipientMail
+                            )
+                        }) {
+                            Image(systemName: "video")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
+                        }
+
+//                        Button(action: {
+//                            callManager.startAudioCall(
+//                                currentUserId: currentUserId,
+//                                recipientUserId: recipientId,
+//                                callerName: currentMail,
+//                                receiverName: recipientMail
+//                            )
+//                        }) {
+//                            Image(systemName: "phone")
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(width: 22, height: 22)
+//                                .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
+//                        }
+                    }
+                    .background(Color.clear)
                 }
                 .offset(y:-30)
                 .padding(.horizontal)
@@ -591,6 +626,8 @@ class ChatViewModel: ObservableObject {
     }
 
     func sendMessage(content: String, sender: String, recipientId: String, chatId: String, messageType: Message.MessageType = .text) {
+        
+        viewModel.onlineStatusService.setupPresence(userId: sender)
         let message = Message(
             id: UUID().uuidString,
             sender: sender,
@@ -706,7 +743,7 @@ class ChatViewModel: ObservableObject {
             
             docRef.addSnapshotListener { documentSnapshot, error in
                 guard let document = documentSnapshot, document.exists else {
-                    self.userStatus = "User not found"
+                    self.userStatus = "Last seen a long time ago"
                     return
                 }
                 

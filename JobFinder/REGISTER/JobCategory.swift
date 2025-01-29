@@ -85,6 +85,7 @@ struct JobSelectionView: View {
                     .padding(.bottom, 30)
                 }
                 .padding(.top, 50)
+                .frame(height: UIScreen.main.bounds.height - 30)
             }
         }
         .padding()

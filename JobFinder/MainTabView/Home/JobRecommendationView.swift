@@ -15,6 +15,12 @@ struct JobRecommendationView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = JobRecommendationViewModel()
 
+    @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("user_mail") var user_mail: String = ""
+    @AppStorage("fullName") var fullName : String = ""
+    @EnvironmentObject var navigationManager: NavigationManager
+    
     var body: some View {
         ZStack(alignment: .top) {
             ScrollView(showsIndicators: false) {
@@ -53,9 +59,18 @@ struct JobRecommendationView: View {
                                 Spacer()
                             }
                             
-                            Image("Frame 1396")
-                                .resizable()
-                                .frame(width: 40, height: 40)
+                            Button {
+                                navigateTapGesture()
+                            } label: {
+                                Image("Frame 1396")
+                                    .resizable()
+                                    .frame(width: 40, height: 40)
+                                    .onTapGesture {
+                                        navigateTapGesture()
+                                    }
+                            }
+                            .padding()
+                            .frame(width: 40, height: 40)
                         }
 
                         // Job title and company
@@ -251,6 +266,56 @@ struct JobRecommendationView: View {
             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
         }
     }
+    
+    private func navigateTapGesture() {
+        if let companyInfo = viewModel.jobData?.parsedCompanyInfo?.first {
+            checkExistingChat(currentUserId: user_id , recipientId: "") { existingChatId in
+                
+            if let chatId = existingChatId {
+            // Existing chat found - navigate to it
+            navigationManager.navigate(to: .ChatView(chatId: chatId,
+                                currentImage: "",
+                                recipientImage: "",
+                                currentUserId: user_id ,
+                                currentMail: user_mail,
+                                recipientId: "\(companyInfo.id)",
+                                recipientMail: companyInfo.companyName ?? ""
+                                ))
+                } else {
+                    // No existing chat - create new one
+                    let newChatId = ChatService.createChatId(userId1: user_id, userId2: "")
+                    navigationManager.navigate(to: .ChatView(
+                        chatId: newChatId,
+                        currentImage: "",
+                        recipientImage: "",
+                        currentUserId: user_id ,
+                        currentMail: user_mail ,
+                        recipientId: "\(companyInfo.id)",
+                        recipientMail:  companyInfo.companyName ?? "Unknown User"
+                    ))
+                }
+            }
+        }
+    }
+    
+    // Function to check for existing chat
+    private func checkExistingChat(currentUserId: String, recipientId: String, completion: @escaping (String?) -> Void) {
+        let chatId = ChatService.createChatId(userId1: currentUserId, userId2: recipientId)
+        
+        FirebaseManager.shared.firestore.collection("chats").document(chatId).getDocument { snapshot, error in
+            if let error = error {
+                print("Error checking for existing chat: \(error)")
+                completion(nil)
+                return
+            }
+            
+            if let snapshot = snapshot, snapshot.exists {
+                completion(chatId)
+            } else {
+                completion(nil)
+            }
+        }
+    }
 }
 
 struct BulletPoint: View {
@@ -386,7 +451,6 @@ class JobRecommendationViewModel: ObservableObject {
                         let decoder = JSONDecoder()
                         let jobData = try decoder.decode(JobData.self, from: jsonData)
                         self.jobData = jobData
-
                     } catch {
                         print("Decoding error: \(error)")
                     }

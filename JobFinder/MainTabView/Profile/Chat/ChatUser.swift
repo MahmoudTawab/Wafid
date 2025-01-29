@@ -23,6 +23,8 @@ struct ChatUser: View {
     
     @AppStorage("user_id") var user_id: String = ""
     @AppStorage("user_mail") var user_mail: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -42,30 +44,29 @@ struct ChatUser: View {
                         
                         Spacer()
                         
-                        Button {
-                            navigationManager.navigate(to: .NewMessageView)
-                        } label: {
-                            Image(systemName: "magnifyingglass")
-                                .resizable()
-                                .frame(width: 22,height: 22)
-                                .foregroundColor(.black)
-                        }.frame(width: 50,height: 50)
+//                        Button {
+//                            navigationManager.navigate(to: .NewMessageView)
+//                        } label: {
+//                            Image(systemName: "magnifyingglass")
+//                                .resizable()
+//                                .frame(width: 22,height: 22)
+//                                .foregroundColor(.black)
+//                        }.frame(width: 50,height: 50)
     
                     }.padding(.bottom,5)
                     
 
                     ForEach(viewModel.chats) { chat in
-                        ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != FirebaseManager.shared.auth.currentUser?.uid } ?? ""],currentUserId: chat.participantIds.first { $0 == FirebaseManager.shared.auth.currentUser?.uid } ?? "")
+                        ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != user_id } ?? ""],currentUserId: chat.participantIds.first { $0 == user_id } ?? "")
                     .padding(.vertical)
                     .frame(width: UIScreen.main.bounds.width - 30,height: 80)
-                    .background(chat.unreadCountForUser(chat.participantIds.first { $0 == FirebaseManager.shared.auth.currentUser?.uid } ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
+                    .background(chat.unreadCountForUser(chat.participantIds.first { $0 == user_id } ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
                     .cornerRadius(10)
                     .clipped()
                         
                     .onTapGesture {
-                    if let uid = FirebaseManager.shared.auth.currentUser?.uid {
-                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: uid, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != uid } ?? "", recipientMail: chat.participantNames.first { $0 != user_mail } ?? ""))
-                    }
+                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: user_id, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != user_id } ?? "", recipientMail: chat.participantNames.first { $0 != user_mail } ?? ""))
+                    
                     }
                     }
                     
@@ -110,17 +111,11 @@ struct ChatUser: View {
         }
         
         .onAppear {
-            if let uid = FirebaseManager.shared.auth.currentUser?.uid {
-            viewModel.fetchChats(for: uid)
-            }
+        viewModel.fetchChats(for: IsEmployee ? user_id:company_id)
         }
     }
-    
-    
-    
-    
-}
 
+}
 
 
 // ChatListRow.swift
@@ -128,12 +123,13 @@ struct ChatListRow: View {
     let chat: ChatListItem
     let userStatus: UserStatus?
     let currentUserId: String
+    @AppStorage("user_id") var user_id: String = ""
 
     var body: some View {
         HStack {
             ZStack(alignment: .bottomTrailing) {
                 // يمكنك إضافة صورة المستخدم هنا
-                WebImage(url: URL(string: chat.participantIds.first == FirebaseManager.shared.auth.currentUser?.uid ? chat.ProfileImage[1] : chat.ProfileImage[0])) { image in
+                WebImage(url: URL(string: chat.participantIds.first == user_id ? chat.ProfileImage[1] : chat.ProfileImage[0])) { image in
                     image.resizable()
                 } placeholder: {
                     Image(systemName: "person.crop.circle")
@@ -237,9 +233,17 @@ struct ChatListItem: Identifiable, Codable {
     let participantIds: [String]
     let participantNames: [String]
     let recipientUnreadCounts: [String: Int]
+    
+    @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
 
     var otherParticipantName: String {
-        participantIds.first == FirebaseManager.shared.auth.currentUser?.uid ? participantNames[0] : participantNames[1]
+        if IsEmployee {
+            participantIds.first == user_id ? participantNames[0] : participantNames[1]
+        }else{
+            participantIds.first == company_id ? participantNames[0] : participantNames[1]
+        }
     }
     
     func unreadCountForUser(_ userId: String) -> Int {

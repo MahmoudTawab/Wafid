@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct ForgotPassword: View {
     @State private var email = ""
     @State private var newPassword = ""

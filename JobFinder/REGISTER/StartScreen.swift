@@ -13,6 +13,7 @@ struct StartScreen: View {
     @StateObject var viewModel = ChatListViewModel()
     @State private var showingBottomSheet: Bool = false
     @AppStorage("IsEmployee") var IsEmployee: Bool = true
+    @AppStorage("company_id") var company_id: String = ""
     @EnvironmentObject var navigationManager: NavigationManager
     
     var body: some View {
@@ -122,9 +123,7 @@ struct StartScreen: View {
         .background(rgbToColor(red: 255, green: 255, blue: 255))
         .onAppear {
             
-            if let uid = FirebaseManager.shared.auth.currentUser?.uid {
-                viewModel.onlineStatusService.setupPresence(userId: uid)
-            }
+            viewModel.onlineStatusService.setupPresence(userId: IsEmployee ? user_id : company_id)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation {isLogoVisible = true}

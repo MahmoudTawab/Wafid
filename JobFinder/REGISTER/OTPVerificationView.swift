@@ -255,57 +255,6 @@ struct OTPVerificationView: View {
         }
     }
     
-    func CreateAccount() {
-    FirebaseManager.shared.auth.createUser(withEmail: email, password: newPassword) { result, error in
-    if let error = error {
-    showLoadingIndicator = false
-    alertMessage = error.localizedDescription
-    showingAlert = true
-    return
-    }
-    UpLodeImage()
-    }
-    }
-    
-    func UpLodeImage() {
-        if let Image = UserImage {
-            guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
-            let ref = FirebaseManager.shared.storage.reference(withPath: "User Image \(uid)")
-            guard let ImageData = Image.jpegData(compressionQuality: 0.5) else { return }
-            let newMetadata = StorageMetadata()
-            newMetadata.contentType = "image/jpeg"
-            ref.putData(ImageData, metadata: newMetadata) { metadata, error in
-                if let error = error {
-                    showLoadingIndicator = false
-                    alertMessage = error.localizedDescription
-                    showingAlert = true
-                    return
-                }
-                
-                ref.downloadURL { url, error in
-                    if let url = url?.absoluteString {
-                        let UserData = ["IsUser": true,"email": self.email , "uid":uid, "ProfileImage":url]
-                        FirebaseManager.shared.firestore.collection("UsersChat").document(uid).setData(UserData) { error in
-                            if let error = error {
-                                showLoadingIndicator = false
-                                alertMessage = error.localizedDescription
-                                showingAlert = true
-                                return
-                            }
-                            
-                            showLoadingIndicator = false
-                            if IsGomeInProfile {user_id = UserId}
-                            navigationManager.navigate(to: .MainTabView)
-                        }
-                    }
-                }
-            }
-        }else{
-        showLoadingIndicator = false
-        navigationManager.navigate(to: .MainTabView)
-        }
-    }
-    
     private func setupRootView() {
         DispatchQueue.main.async {
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

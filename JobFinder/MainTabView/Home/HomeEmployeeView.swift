@@ -137,8 +137,7 @@ struct HomeEmployeeView: View {
                     TypeToast: .error,
                     FrameHeight: .constant(65)
                 )
-                .padding(.top,50)
-                .frame(width: UIScreen.main.bounds.width - 30)
+                .padding(.top)
             }
         }
         .preferredColorScheme(.light)
@@ -146,8 +145,17 @@ struct HomeEmployeeView: View {
         .task {
             await viewModel.fetchData()
         }
+        
+        .onTapGesture {
+            hideKeyboard()
+        }
     }
     
+    // إخفاء لوحة المفاتيح
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                      to: nil, from: nil, for: nil)
+    }
     
     private var loadingOverlay: some View {
         ZStack {

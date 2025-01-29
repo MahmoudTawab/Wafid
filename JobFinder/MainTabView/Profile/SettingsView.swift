@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
     @State var showingBottomSheet = false
     @AppStorage("user_id") var userId: String = ""
+    @AppStorage("company_id") var company_id: String = ""
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -115,6 +116,7 @@ struct SettingsView: View {
                         
                         Button(action: {
                             userId = ""
+                            company_id = ""
                             setupRootView()
                             withAnimation { showingBottomSheet = false }
                         }) {
