@@ -82,12 +82,10 @@ struct HeaderView: View {
                     Image("Frame 1396")
                         .resizable()
                         .frame(width: 40, height: 40)
-                        .onTapGesture {
-                            navigateTapGesture()
-                        }
+                        .contentShape(Rectangle())
                 }
-                .padding()
-                .frame(width: 40, height: 40)
+                .padding(10)
+                .frame(width: 60, height: 60)
                 
             }
             .padding(.horizontal)

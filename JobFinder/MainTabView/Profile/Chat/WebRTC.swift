@@ -368,6 +368,7 @@ class RingtonePlayer {
 
 
 struct VideoCallApp: View {
+    @StateObject private var callManager = CallManager.shared
     @ObservedObject var viewModel: CallViewModel
     private var client: StreamVideo
 
@@ -404,74 +405,17 @@ struct VideoCallApp: View {
                     viewModel.joinCall(callType: .default, callId: callId)
                 }
             }
+            
+            .onChange(of: viewModel.callingState, perform: { State in
+                if State == CallingState.idle {
+                    callManager.incomingCall = nil
+                    callManager.outgoingCall = nil
+                    callManager.isCallActive = false
+                }
+            })
+            
         }
+
 }
             
 
-struct ParticipantsView: View {
-
-    var call: Call
-    var participants: [CallParticipant]
-    var onChangeTrackVisibility: (CallParticipant?, Bool) -> Void
-
-    var body: some View {
-        GeometryReader { proxy in
-            if !participants.isEmpty {
-                ScrollView {
-                    LazyVStack {
-                        if participants.count == 1, let participant = participants.first {
-                            makeCallParticipantView(participant, frame: proxy.frame(in: .global))
-                                .frame(width: proxy.size.width, height: proxy.size.height)
-                        } else {
-                            ForEach(participants) { participant in
-                                makeCallParticipantView(participant, frame: proxy.frame(in: .global))
-                                    .frame(width: proxy.size.width, height: proxy.size.height / 2)
-                            }
-                        }
-                    }
-                }
-            } else {
-                Color.black
-            }
-        }
-        .edgesIgnoringSafeArea(.all)
-    }
-
-    @ViewBuilder
-    private func makeCallParticipantView(_ participant: CallParticipant, frame: CGRect) -> some View {
-        VideoCallParticipantView(
-            participant: participant,
-            availableFrame: frame,
-            contentMode: .scaleAspectFit,
-            customData: [:],
-            call: call
-        )
-        .onAppear { onChangeTrackVisibility(participant, true) }
-        .onDisappear{ onChangeTrackVisibility(participant, false) }
-    }
-}
-
-
-struct FloatingParticipantView: View {
-
-    var participant: CallParticipant?
-    var size: CGSize = .init(width: 120, height: 120)
-
-    var body: some View {
-        if let participant = participant {
-            VStack {
-                HStack {
-                    Spacer()
-
-                    VideoRendererView(id: participant.id, size: size) { videoRenderer in
-                        videoRenderer.handleViewRendering(for: participant, onTrackSizeUpdate: { _, _ in })
-                    }
-                    .frame(width: size.width, height: size.height)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                Spacer()
-            }
-            .padding()
-        }
-    }
-}

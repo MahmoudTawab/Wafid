@@ -90,9 +90,9 @@ struct ChatView: View {
                             Image(systemName: "video")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: 28, height: 28)
                                 .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
-                        }
+                        }.padding()
 
 //                        Button(action: {
 //                            callManager.startAudioCall(
@@ -110,6 +110,14 @@ struct ChatView: View {
 //                        }
                     }
                     .background(Color.clear)
+                    .onTapGesture {
+                        callManager.startVideoCall(
+                            currentUserId: currentUserId,
+                            recipientUserId: recipientId,
+                            callerName: currentMail,
+                            receiverName: recipientMail
+                        )
+                    }
                 }
                 .offset(y:-30)
                 .padding(.horizontal)
