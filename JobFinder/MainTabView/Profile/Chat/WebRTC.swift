@@ -378,6 +378,15 @@ struct VideoCallApp: View {
     private let userId: String = "Darth_Vader"
     private let callId: String = "BKTcmRHlJx83"
 
+    let videoCallSettings = CallSettings(
+        audioOn: true,
+        videoOn: true,  // تفعيل الفيديو
+        speakerOn: true,
+        audioOutputOn: true,
+        cameraPosition: .front
+    )
+    
+
     init(name:String) {
         let user = User(
             id: userId,
@@ -399,11 +408,21 @@ struct VideoCallApp: View {
             VStack {
                 if viewModel.call != nil {
                     CallContainer(viewFactory: DefaultViewFactory.shared, viewModel: viewModel)
+                } else if viewModel.callingState != CallingState.idle {
+                    ZStack(alignment: .center) {
+                        Color.black
+                            .edgesIgnoringSafeArea(.all)
+                            .animation(.easeInOut, value: 0.6)
+                        
+                        Text("loading...")
+                        .foregroundColor(.white)
+                    }
+                    .edgesIgnoringSafeArea(.all)
                 }
             }.onAppear {
                 Task {
                     guard viewModel.call == nil else { return }
-                    viewModel.joinCall(callType: .default, callId: callId)
+                    viewModel.joinCall(callType: callManager.outgoingCall?.type == "video" ? .default : .audioRoom, callId: callId)
                 }
             }
 
@@ -416,6 +435,7 @@ struct VideoCallApp: View {
             })
             
         }
+    
 
 }
             

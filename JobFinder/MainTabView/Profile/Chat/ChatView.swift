@@ -52,6 +52,10 @@ struct ChatView: View {
     
     @StateObject private var callManager = CallManager.shared
 
+    @State private var showScrollButton = false
+    @State private var scrollViewProxy: ScrollViewProxy?
+    @State private var lastMessageId: String?
+    
     var body: some View {
         VStack {
                 HStack(spacing: 10) {
@@ -94,20 +98,20 @@ struct ChatView: View {
                                 .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
                         }.padding()
 
-//                        Button(action: {
-//                            callManager.startAudioCall(
-//                                currentUserId: currentUserId,
-//                                recipientUserId: recipientId,
-//                                callerName: currentMail,
-//                                receiverName: recipientMail
-//                            )
-//                        }) {
-//                            Image(systemName: "phone")
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(width: 22, height: 22)
-//                                .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
-//                        }
+                        Button(action: {
+                            callManager.startAudioCall(
+                                currentUserId: currentUserId,
+                                recipientUserId: recipientId,
+                                callerName: currentMail,
+                                receiverName: recipientMail
+                            )
+                        }) {
+                            Image(systemName: "phone")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
+                        }
                     }
                     .background(Color.clear)
                     .onTapGesture {
@@ -123,32 +127,84 @@ struct ChatView: View {
                 .padding(.horizontal)
             
             ScrollView {
-                ScrollViewReader { proxy in
-                    LazyVStack {
-                        ForEach(viewModel.messages) { message in
-                            MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
-                                self.image = image
-                                showImageViewer = true
+                            ScrollViewReader { proxy in
+                                GeometryReader { geometry in
+                                    Color.clear.preference(
+                                        key: ScrollOffsetPreferenceKey.self,
+                                        value: geometry.frame(in: .named("scroll")).minY
+                                    )
+                                }
+                                .frame(height: 0)
+                                
+                                LazyVStack {
+                                    ForEach(viewModel.messages) { message in
+                                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
+                                                self.image = image
+                                                showImageViewer = true
+                                                hideKeyboard()
+                                        }
+                                        .padding(.horizontal)
+                                        .id(message.id)
+                                    }
+                                }
+                                .padding(.top, 5)
+                                .onChange(of: viewModel.messages.count) { _ in
+                                    withAnimation {
+                                        if let lastId = viewModel.messages.last?.id {
+                                            proxy.scrollTo(lastId, anchor: .bottom)
+                                            lastMessageId = lastId
+                                        }
+                                    }
+                                }
+                                .onAppear {
+                                    DispatchQueue.main.async {
+                                        scrollViewProxy = proxy
+                                        if let lastId = viewModel.messages.last?.id {
+                                            proxy.scrollTo(lastId, anchor: .bottom)
+                                            lastMessageId = lastId
+                                        }
+                                    }
+                                }
                             }
-                            .padding(.horizontal)
-                            .id(message.id) // Add id for scrolling
                         }
-                    }
-                    .padding(.top, 5)
-                    .onChange(of: viewModel.messages.count) { _ in
-                        withAnimation {
-                            proxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
+                        .coordinateSpace(name: "scroll")
+                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                            DispatchQueue.main.async {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showScrollButton = offset > 50
+                                }
+                            }
                         }
-                    }
-                    .onAppear {
-                        scrollProxy = proxy
-                        if let lastMessage = viewModel.messages.last {
-                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                        }
-                    }
-                }
-            }
-            .offset(y:-25)
+                        .overlay(
+                            Group {
+                                if showScrollButton {
+                                    VStack {
+                                        Spacer()
+                                        HStack {
+                                            Button(action: {
+                                                withAnimation {
+                                                    if let lastId = lastMessageId {
+                                                        scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                                                    }
+                                                }
+                                            }) {
+                                                Image(systemName: "arrow.down.circle.fill")
+                                                    .font(.system(size: 35))
+                                                    .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
+                                                    .background(Color.white)
+                                                    .clipShape(Circle())
+                                                    .shadow(radius: 4)
+                                            }
+                                            .padding(.leading, 16)
+                                            .padding(.bottom, 10)
+                                            
+                                            Spacer()
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                        .offset(y:-25)
             
             if isUploading {
                 HStack(spacing: 10) {
@@ -179,26 +235,31 @@ struct ChatView: View {
                     .tint(rgbToColor(red: 193, green: 140, blue: 70))
                 
                 
-                Button(action: {
-                    showVideoSourceMenu = true
-                }) {
+
+                Menu {
+                    Button(action: { showImagePicker = true }) {
+                        Label("Photo", systemImage: "photo")
+                            .foregroundColor(.black)
+                    }
+                    
+                    Button(action: { showVideoPicker = true }) {
+                        Label("Video", systemImage: "video.fill")
+                            .foregroundColor(.black)
+                    }
+                    
+                    Button(action: { showFilePicker = true }) {
+                        Label("File", systemImage: "doc.fill")
+                            .foregroundColor(.black)
+                    }
+                    
+                    Button(action: { showLocationPicker = true }) {
+                        Label("Location", systemImage: "location.fill")
+                            .foregroundColor(.black)
+                    }
+                } label: {
                     Image("Frame 2")
                         .resizable()
-                        .frame(width: 25,height: 25)
-                }
-                .confirmationDialog("Send Media", isPresented: $showVideoSourceMenu, titleVisibility: .visible) {
-                    Button("Photo") {
-                        showImagePicker = true
-                    }
-                    Button("Video") {
-                        showVideoPicker = true
-                    }
-                    Button("File") {
-                    showFilePicker = true
-                    }
-                    Button("Location") {
-                    showLocationPicker = true
-                    }
+                        .frame(width: 25, height: 25)
                 }
                 
                 Button(action: {
@@ -779,3 +840,9 @@ class ChatViewModel: ObservableObject {
 }
 
 
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value += nextValue()
+    }
+}

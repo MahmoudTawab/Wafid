@@ -356,6 +356,7 @@ struct CompanyInfo: Codable {
     var nationality: String?
     var nearestPoint: String?
     var recordAttachId: Int?
+    var company_email: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -376,6 +377,7 @@ struct CompanyInfo: Codable {
         case nationality
         case nearestPoint = "nearest_point"
         case recordAttachId = "record_attach_id"
+        case company_email
     }
 }
 

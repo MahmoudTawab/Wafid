@@ -28,7 +28,9 @@ struct LoginScreen: View {
     @AppStorage("rememberMe") private var selectedRemember = false
     @AppStorage("userCredentials") private var savedCredentials: Data?
     
+    @State private var showingBottomSheet: Bool = false    
     var body: some View {
+        
         ZStack(alignment: .top) {
             ScrollView(showsIndicators: false) {
                 
@@ -112,11 +114,7 @@ struct LoginScreen: View {
                     }
                     .padding(.bottom , 5)
                     .onTapGesture {
-                        if IsEmployee {
-                            navigationManager.navigate(to: .SignUp)
-                        }else{
-                            navigationManager.navigate(to: .ProfileCompanyScreen)
-                        }
+                        withAnimation {showingBottomSheet = true}
                     }
                     
                 }
@@ -148,6 +146,82 @@ struct LoginScreen: View {
             
             AnimatedToastMessage(showingErrorMessageisValid: $showingAlert, MassegeContent: $alertMessage, TypeToast : .error, FrameHeight: .constant(65))
             .padding(.top ,-50)
+            
+            if showingBottomSheet {
+                NewBottomSheet(isOpen: $showingBottomSheet,IsShowIndicator: true, maxHeight: 330, minHeight: 0) {
+                    VStack() {
+                        Image("user-tag")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50,height: 50)
+                            .padding(.top , 20)
+                        
+                        Text("What are you looking for?")
+                            .font(Font.system(size: ControlWidth(13)))
+                            .foregroundColor(.black)
+                            .padding(.vertical)
+                            .padding(.bottom , 25)
+                        
+                        HStack(spacing: 30) {
+                            Button(action: {
+                                IsEmployee = true
+                                navigationManager.navigate(to:  .JobSelectionView )
+                                withAnimation { showingBottomSheet = false }
+                            }) {
+                                VStack(spacing: -10) {
+                                    Image("Group 1379")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 50,height: 50)
+                                        .padding(.vertical)
+                                    
+                                    Text("I want a job")
+                                        .font(.system(size: ControlWidth(12)))
+                                        .foregroundColor(.black)
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(rgbToColor(red: 255, green: 255, blue: 255))
+                                        .cornerRadius(15)
+                                }
+                            }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(!IsEmployee ? rgbToColor(red: 233, green: 233, blue: 233) : rgbToColor(red: 193, green: 140, blue: 70), lineWidth: 1)
+                            )
+                            
+                            Button(action: {
+                                IsEmployee = false
+                                navigationManager.navigate(to: .ProfileCompanyScreen )
+                                withAnimation { showingBottomSheet = false }
+                            }) {
+                                VStack(spacing: -10) {
+                                    Image("Group 1378")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 50,height: 50)
+                                        .padding(.vertical)
+                                    
+                                    Text("I want an employee")
+                                        .font(.system(size: ControlWidth(12)))
+                                        .foregroundColor(.black)
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(rgbToColor(red: 255, green: 255, blue: 255))
+                                        .cornerRadius(20)
+                                }
+                            }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(IsEmployee ? rgbToColor(red: 233, green: 233, blue: 233) : rgbToColor(red: 193, green: 140, blue: 70), lineWidth: 1)
+                            )
+                        }
+                        .frame(width: UIScreen.main.bounds.width - 40,height: 80)
+                        .padding(.bottom,20)
+                        
+                    }.padding(.horizontal).padding(.vertical).offset(y:-10)
+                    
+                }
+            }
         }
         .onTapGesture {
             hideKeyboard()

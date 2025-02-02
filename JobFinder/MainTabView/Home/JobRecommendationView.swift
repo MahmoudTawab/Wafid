@@ -79,7 +79,7 @@ struct JobRecommendationView: View {
                                 .foregroundColor(.white)
                             
                             if let companyInfo = viewModel.jobData?.parsedCompanyInfo?.first {
-                                Text(companyInfo.companyName ?? "")
+                                Text(companyInfo.company_email ?? companyInfo.companyName ?? "")
                                     .foregroundColor(.white.opacity(0.8))
                             }
                         }
@@ -277,7 +277,7 @@ struct JobRecommendationView: View {
                                 currentUserId: user_id ,
                                 currentMail: user_mail,
                                 recipientId: "\(companyInfo.id)",
-                                recipientMail: companyInfo.companyName ?? ""
+                                recipientMail: companyInfo.company_email ?? companyInfo.companyName  ?? "Unknown User"
                                 ))
                 } else {
                     // No existing chat - create new one
@@ -289,7 +289,7 @@ struct JobRecommendationView: View {
                         currentUserId: user_id ,
                         currentMail: user_mail ,
                         recipientId: "\(companyInfo.id)",
-                        recipientMail:  companyInfo.companyName ?? "Unknown User"
+                        recipientMail:  companyInfo.company_email ?? companyInfo.companyName ?? "Unknown User"
                     ))
                 }
             }
