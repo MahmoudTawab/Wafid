@@ -13,6 +13,7 @@ import FirebaseMessaging
 import AVFoundation
 import StreamVideo
 import StreamVideoSwiftUI
+import StreamWebRTC
 
 class CallManager: ObservableObject {
     static let shared = CallManager()
@@ -405,7 +406,7 @@ struct VideoCallApp: View {
                     viewModel.joinCall(callType: .default, callId: callId)
                 }
             }
-            
+
             .onChange(of: viewModel.callingState, perform: { State in
                 if State == CallingState.idle {
                     callManager.incomingCall = nil

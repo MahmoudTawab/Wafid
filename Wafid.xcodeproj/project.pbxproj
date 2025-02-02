@@ -16,6 +16,7 @@
 		D12A75502D4A9C4E005E435C /* StreamVideo in Frameworks */ = {isa = PBXBuildFile; productRef = D12A754F2D4A9C4E005E435C /* StreamVideo */; };
 		D12A75522D4A9C4E005E435C /* StreamVideoSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75512D4A9C4E005E435C /* StreamVideoSwiftUI */; };
 		D12A75542D4A9C4E005E435C /* StreamVideoUIKit in Frameworks */ = {isa = PBXBuildFile; productRef = D12A75532D4A9C4E005E435C /* StreamVideoUIKit */; };
+		D1FB1BF72D4F77C6003C3120 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = D1FB1BF62D4F77C6003C3120 /* FirebaseDatabase */; };
 		D1FF6E812D34FFB20053EA74 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D1FF6E7F2D34FFB20053EA74 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +53,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1FB1BF72D4F77C6003C3120 /* FirebaseDatabase in Frameworks */,
 				D12A75462D4A758C005E435C /* SDWebImageSwiftUI in Frameworks */,
 				D12A753F2D4A74E8005E435C /* FirebaseFirestore in Frameworks */,
 				D12A75542D4A9C4E005E435C /* StreamVideoUIKit in Frameworks */,
@@ -123,6 +125,7 @@
 				D12A754F2D4A9C4E005E435C /* StreamVideo */,
 				D12A75512D4A9C4E005E435C /* StreamVideoSwiftUI */,
 				D12A75532D4A9C4E005E435C /* StreamVideoUIKit */,
+				D1FB1BF62D4F77C6003C3120 /* FirebaseDatabase */,
 			);
 			productName = JobFinder;
 			productReference = D109C72C2D33EEC600BCB02C /* Wafid.app */;
@@ -495,6 +498,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D12A754E2D4A9C4E005E435C /* XCRemoteSwiftPackageReference "stream-video-swift" */;
 			productName = StreamVideoUIKit;
+		};
+		D1FB1BF62D4F77C6003C3120 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D12A75392D4A74C5005E435C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

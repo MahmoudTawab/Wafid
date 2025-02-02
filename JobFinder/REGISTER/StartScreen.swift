@@ -148,5 +148,3 @@ struct StartScreen: View {
 #Preview {
     StartScreen()
 }
-
-
