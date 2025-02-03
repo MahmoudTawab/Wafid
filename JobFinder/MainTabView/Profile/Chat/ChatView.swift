@@ -56,6 +56,9 @@ struct ChatView: View {
     @State private var scrollViewProxy: ScrollViewProxy?
     @State private var lastMessageId: String?
     
+    @State private var showAlert = false
+    @State private var contentHeight: CGFloat = 0
+
     var body: some View {
         VStack {
                 HStack(spacing: 10) {
@@ -84,12 +87,17 @@ struct ChatView: View {
                     
                     HStack(spacing: 25) {
                         Button(action: {
-                            callManager.startVideoCall(
-                                currentUserId: currentUserId,
-                                recipientUserId: recipientId,
-                                callerName: currentMail,
-                                receiverName: recipientMail
-                            )
+                            if NetworkMonitor.shared.isConnected {
+                                hideKeyboard()
+                                callManager.startVideoCall(
+                                    currentUserId: currentUserId,
+                                    recipientUserId: recipientId,
+                                    callerName: currentMail,
+                                    receiverName: recipientMail
+                                )
+                            } else {
+                                showAlert = true
+                            }
                         }) {
                             Image(systemName: "video")
                                 .resizable()
@@ -99,12 +107,17 @@ struct ChatView: View {
                         }.padding()
 
                         Button(action: {
-                            callManager.startAudioCall(
-                                currentUserId: currentUserId,
-                                recipientUserId: recipientId,
-                                callerName: currentMail,
-                                receiverName: recipientMail
-                            )
+                            if NetworkMonitor.shared.isConnected {
+                                hideKeyboard()
+                                callManager.startAudioCall(
+                                    currentUserId: currentUserId,
+                                    recipientUserId: recipientId,
+                                    callerName: currentMail,
+                                    receiverName: recipientMail
+                                )
+                            } else {
+                                showAlert = true
+                            }
                         }) {
                             Image(systemName: "phone")
                                 .resizable()
@@ -126,91 +139,103 @@ struct ChatView: View {
                 .offset(y:-30)
                 .padding(.horizontal)
             
-            ScrollView {
-                            ScrollViewReader { proxy in
-                                GeometryReader { geometry in
-                                    Color.clear.preference(
-                                        key: ScrollOffsetPreferenceKey.self,
-                                        value: geometry.frame(in: .named("scroll")).minY
-                                    )
-                                }
-                                .frame(height: 0)
-                                
-                                LazyVStack {
-                                    ForEach(viewModel.messages) { message in
-                                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
-                                                self.image = image
-                                                showImageViewer = true
-                                                hideKeyboard()
-                                        }
-                                        .padding(.horizontal)
-                                        .id(message.id)
+            GeometryReader { outerGeometry in
+                ScrollView {
+                    ScrollViewReader { proxy in
+                        VStack {
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .preference(key: ScrollOffsetPreferenceKey.self,
+                                                value: geometry.frame(in: .named("scroll")).minY)
+                            }
+                            .frame(height: 0)
+                            
+                            LazyVStack {
+                                ForEach(viewModel.messages) { message in
+                                    MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
+                                        // Show Image
                                     }
+                                    .padding(.horizontal)
+                                    .id(message.id)
                                 }
-                                .padding(.top, 5)
-                                .onChange(of: viewModel.messages.count) { _ in
-                                    withAnimation {
-                                        if let lastId = viewModel.messages.last?.id {
-                                            proxy.scrollTo(lastId, anchor: .bottom)
-                                            lastMessageId = lastId
-                                        }
-                                    }
+                            }
+                            .background(
+                                GeometryReader { contentGeometry in
+                                    Color.clear
+                                        .preference(key: ContentHeightPreferenceKey.self,
+                                                    value: contentGeometry.size.height)
                                 }
-                                .onAppear {
-                                    DispatchQueue.main.async {
-                                        scrollViewProxy = proxy
-                                        if let lastId = viewModel.messages.last?.id {
-                                            proxy.scrollTo(lastId, anchor: .bottom)
-                                            lastMessageId = lastId
-                                        }
-                                    }
+                            )
+                        }
+                        .padding(.top, 5)
+                        .onChange(of: viewModel.messages.count) { _ in
+                            withAnimation {
+                                if let lastId = viewModel.messages.last?.id {
+                                    proxy.scrollTo(lastId, anchor: .bottom)
+                                    lastMessageId = lastId
                                 }
                             }
                         }
-                        .coordinateSpace(name: "scroll")
-                        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                        .onAppear {
                             DispatchQueue.main.async {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    showScrollButton = offset > 50
+                                scrollViewProxy = proxy
+                                if let lastId = viewModel.messages.last?.id {
+                                    proxy.scrollTo(lastId, anchor: .bottom)
+                                    lastMessageId = lastId
                                 }
                             }
                         }
-                        .overlay(
-                            Group {
-                                if showScrollButton {
-                                    VStack {
-                                        Spacer()
-                                        HStack {
-                                            Button(action: {
-                                                withAnimation {
-                                                    if let lastId = lastMessageId {
-                                                        scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
-                                                    }
-                                                }
-                                            }) {
-                                                Image(systemName: "arrow.down.circle.fill")
-                                                    .font(.system(size: 35))
-                                                    .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
-                                                    .background(Color.white)
-                                                    .clipShape(Circle())
-                                                    .shadow(radius: 4)
-                                            }
-                                            .padding(.leading, 16)
-                                            .padding(.bottom, 10)
-                                            
-                                            Spacer()
-                                        }
+                    }
+                }
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                    checkScrollButtonVisibility(offset: offset)
+                }
+                .onPreferenceChange(ContentHeightPreferenceKey.self) { height in
+                    contentHeight = height
+                }
+                .onChange(of: outerGeometry.size.height) { newHeight in
+                    withAnimation {
+                        if let lastId = viewModel.messages.last?.id {
+                            scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                        }
+                    }
+                }
+            }
+            .overlay(
+                VStack {
+                    Spacer()
+                    if showScrollButton {
+                        HStack {
+                            Button(action: {
+                                withAnimation {
+                                    if let lastId = lastMessageId {
+                                        scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
                                     }
                                 }
+                            }) {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.system(size: 35))
+                                    .foregroundColor(Color.orange)
+                                    .background(Color.white)
+                                    .clipShape(Circle())
+                                    .shadow(radius: 4)
                             }
-                        )
-                        .offset(y:-25)
+                            .padding(.leading, 16)
+                            .padding(.bottom, 10)
+                            
+                            Spacer()
+                        }
+                    }
+                }
+            )
+            .offset(y:-25)
             
             if isUploading {
                 HStack(spacing: 10) {
-                ActivityIndicator(isAnimating: $isUploading) // اللودر
+                ActivityIndicator(isAnimating: $isUploading)
                     
-                Text("Loading...") // النص المكتوب بجانب اللودر
+                Text("Loading...")
                 .font(.headline)
                 .foregroundColor(.gray)
                 Spacer()
@@ -289,8 +314,24 @@ struct ChatView: View {
         .overlay(ImageViewer(image: $image, viewerShown: self.$showImageViewer, aspectRatio: .constant(1)))
         
         .onAppear {
+            viewModel.isViewActive = true
+            viewModel.loadLocalMessages(chatId: chatId)
             viewModel.fetchUserStatus(userId: recipientId)
             viewModel.listenToMessages(chatId: chatId, currentUserId: currentUserId,recipientId:recipientId)
+            
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                withAnimation {
+                    if let lastId = viewModel.messages.last?.id {
+                        scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                    }
+                }
+            }
+        }
+        
+        .onDisappear {
+            viewModel.isViewActive = false
+            
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
         
         ///
@@ -326,11 +367,23 @@ struct ChatView: View {
             sendLocation(location)
         }
 
+        .alert(isPresented: $showAlert) {
+        Alert(title: Text("خطأ"), message: Text("برجاء التحقق من الاتصال بالإنترنت"), dismissButton: .default(Text("موافق")))
+        }
     }
     
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                      to: nil, from: nil, for: nil)
+                                        to: nil, from: nil, for: nil)
+    }
+    
+    private func checkScrollButtonVisibility(offset: CGFloat) {
+        let screenHeight = UIScreen.main.bounds.height
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showScrollButton = offset > 60 && contentHeight > screenHeight
+            }
+        }
     }
     
     private func calculateTextViewHeight() -> CGFloat {
@@ -531,73 +584,86 @@ class ChatViewModel: ObservableObject {
     var listenerRegistration: ListenerRegistration?
     @StateObject var viewModel = ChatListViewModel()
     @Published var userStatus: String = "Loading..."
+    @Published var isViewActive = false
 
+    
     init() {}
     
-    func listenToMessages(chatId: String, currentUserId: String,recipientId:String) {
-        listenerRegistration = db.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .order(by: "timestamp", descending: false)
-            .addSnapshotListener { [weak self] querySnapshot, error in
-                guard let documents = querySnapshot?.documents else {
-                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
-                    return
-                }
-                
-                self?.messages = documents.compactMap { document -> Message? in
-                    try? document.data(as: Message.self)
-                }
-                
-                
-                // جلب قيمة recipientUnreadCounts من Firebase
-                let chatRef = Firestore.firestore().collection("chats").document(chatId)
-                
-                chatRef.getDocument { document, error in
-                    guard let document = document, document.exists else {
-                        print("Document does not exist or error occurred: \(error?.localizedDescription ?? "Unknown error")")
-                        return
-                    }
-                    
-                    // جلب بيانات unread counts للمستلم
-                    if let recipientUnreadCounts = document.data()?["recipientUnreadCounts"] as? [String: Int] {
-                        if recipientUnreadCounts.first?.key == currentUserId {
-                            self?.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
-                        }
-                    }
-                }
-            }
-    }
+    // 3. تحديث وظيفة الاستماع للرسائل وتحديث حالة القراءة
+//    func listenToMessages(chatId: String, currentUserId: String, recipientId: String) {
+//        // إنشاء مرجع للمحادثة
+//        let chatRef = db.collection("chats").document(chatId)
+//        
+//        // الاستماع للرسائل
+//        listenerRegistration = chatRef
+//            .collection("messages")
+//            .order(by: "timestamp", descending: false)
+//            .addSnapshotListener { [weak self] querySnapshot, error in
+//                guard let self = self,
+//                      let documents = querySnapshot?.documents else {
+//                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
+//                    return
+//                }
+//                
+//                self.messages = documents.compactMap { document -> Message? in
+//                    try? document.data(as: Message.self)
+//                }
+//                
+//                // تحديث حالة القراءة للرسائل إذا كان المستخدم الحالي هو المستقبل
+//                if isViewActive {
+//                    self.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
+//                }
+//            }
+//    }
 
-    
+    // 4. تحديث وظيفة تحديث حالة القراءة
     func markMessagesAsRead(chatId: String, currentUserId: String) {
         let batch = db.batch()
+        let chatRef = db.collection("chats").document(chatId)
         
-        db.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .whereField("recipient_id", isEqualTo: currentUserId)
-            .whereField("is_read", isEqualTo: false)
-            .getDocuments { [weak self] querySnapshot, error in
-                guard let documents = querySnapshot?.documents else { return }
-
-                // Update read status for each message
-                for document in documents {
-                    batch.updateData(["is_read": true], forDocument: document.reference)
-                }
-
-                // Reset unread count to zero for the current user
-                let chatRef = self?.db.collection("chats").document(chatId)
-                if let chatRef = chatRef {
-                    batch.updateData(["recipientUnreadCounts.\(currentUserId)": 0], forDocument: chatRef)
-                }
-
-                batch.commit { error in
-                    if let error = error {
-                        print("Error updating read status: \(error)")
-                    }
+        // أولاً، نتحقق من recipientUnreadCounts
+        chatRef.getDocument { document, error in
+            guard let document = document,
+                  let recipientUnreadCounts = document.data()?["recipientUnreadCounts"] as? [String: Int] else {
+                print("Error fetching recipientUnreadCounts")
+                return
+            }
+            
+            // نتحقق مما إذا كان المفتاح موجود وقيمته تساوي currentUserId
+            for (key, _) in recipientUnreadCounts {
+                if key == currentUserId {
+                    // إذا وجدنا التطابق، نقوم بتحديث الرسائل غير المقروءة
+                    self.db.collection("chats")
+                        .document(chatId)
+                        .collection("messages")
+                        .whereField("recipient_id", isEqualTo: currentUserId)
+                        .whereField("is_read", isEqualTo: false)
+                        .getDocuments { querySnapshot, error in
+                            guard let documents = querySnapshot?.documents else { return }
+                            
+                            // تحديث كل رسالة غير مقروءة
+                            for document in documents {
+                                batch.updateData(["is_read": true], forDocument: document.reference)
+                            }
+                            
+                            // تصفير عداد الرسائل غير المقروءة للمستخدم الحالي
+                            if !documents.isEmpty {
+                                batch.updateData([
+                                    "recipientUnreadCounts.\(currentUserId)": 0
+                                ], forDocument: chatRef)
+                            }
+                            
+                            // تنفيذ التحديثات دفعة واحدة
+                            batch.commit { error in
+                                if let error = error {
+                                    print("Error updating read status: \(error)")
+                                }
+                            }
+                        }
+                    break  // نخرج من الحلقة بمجرد أن نجد التطابق
                 }
             }
+        }
     }
     
     func createNewChat(
@@ -615,10 +681,8 @@ class ChatViewModel: ObservableObject {
         progressCallback: ((Double) -> Void)? = nil,
         completion: (() -> Void)? = nil
     ) {
-        // إنشاء معرف فريد للمحادثة باستخدام معرفات المستخدمين
         let chatId = ChatService.createChatId(userId1: currentUserId, userId2: recipientId)
 
-        // إنشاء بيانات المحادثة
         let chatData = ChatListItem(
             id: chatId,
             lastMessage: getLastMessageText(messageType: messageType, initialMessage: initialMessage),
@@ -629,61 +693,61 @@ class ChatViewModel: ObservableObject {
             recipientUnreadCounts: [recipientId: recipientUnreadCounts]
         )
 
-        // حفظ بيانات المحادثة في Firestore
         do {
             try db.collection("chats").document(chatId).setData(from: chatData)
             
-            // معالجة أنواع الرسائل المختلفة
-            switch messageType {
-            case .text:
-                sendMessage(
-                    content: initialMessage,
-                    sender: currentUserId,
-                    recipientId: recipientId,
-                    chatId: chatId,
-                    messageType: .text
-                )
-                completion?()
-                
-            case .image:
-                if let image = image {
-                    uploadImage(
-                        image,
-                        sender: currentUserId,
-                        recipientId: recipientId,
-                        chatId: chatId,
-                        progressCallback: progressCallback,
-                        completion: completion
-                    )
+            if messageType == .image, let image = image {
+                // Upload image to Firebase Storage first
+                guard let imageData = image.jpegData(compressionQuality: 0.5) else {
+                    completion?()
+                    return
                 }
                 
-            case .video:
-                sendMessage(
-                    content: videoUrl,
-                    sender: currentUserId,
-                    recipientId: recipientId,
-                    chatId: chatId,
-                    messageType: .video
-                )
-                completion?()
+                let storageRef = Storage.storage().reference()
+                let imageName = "\(UUID().uuidString).jpg"
+                let imageRef = storageRef.child("chat_images/\(chatId)/\(imageName)")
                 
-            case .file:
-                sendMessage(
-                    content: fileURL,
-                    sender: currentUserId,
-                    recipientId: recipientId,
-                    chatId: chatId,
-                    messageType: .file
-                )
-                completion?()
+                let uploadTask = imageRef.putData(imageData) { metadata, error in
+                    if let error = error {
+                        print("Image upload error: \(error.localizedDescription)")
+                        completion?()
+                        return
+                    }
+                    
+                    imageRef.downloadURL { [weak self] (url, error) in
+                        guard let self = self,
+                              let downloadURL = url else {
+                            print("Could not get download URL")
+                            completion?()
+                            return
+                        }
+                        
+                        self.sendMessage(
+                            content: downloadURL.absoluteString,
+                            sender: currentUserId,
+                            recipientId: recipientId,
+                            chatId: chatId,
+                            messageType: .image
+                        )
+                        completion?()
+                    }
+                }
                 
-            case .location:
+                uploadTask.observe(.progress) { snapshot in
+                    let percentComplete = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
+                    progressCallback?(percentComplete)
+                }
+            } else {
+                // Handle all other message types
                 sendMessage(
-                    content: initialMessage,
+                    content: messageType == .text ? initialMessage :
+                            messageType == .video ? videoUrl :
+                            messageType == .file ? fileURL :
+                            initialMessage,
                     sender: currentUserId,
                     recipientId: recipientId,
                     chatId: chatId,
-                    messageType: .location
+                    messageType: messageType
                 )
                 completion?()
             }
@@ -695,7 +759,6 @@ class ChatViewModel: ObservableObject {
     }
 
     func sendMessage(content: String, sender: String, recipientId: String, chatId: String, messageType: Message.MessageType = .text) {
-        
         viewModel.onlineStatusService.setupPresence(userId: sender)
         let message = Message(
             id: UUID().uuidString,
@@ -706,33 +769,44 @@ class ChatViewModel: ObservableObject {
             isRead: false,
             messageType: messageType
         )
-
+        
         do {
             try db.collection("chats")
                 .document(chatId)
                 .collection("messages")
                 .document(message.id)
                 .setData(from: message)
-
+            
             db.collection("chats").document(chatId).getDocument { [weak self] snapshot, error in
                 guard let document = snapshot, document.exists else { return }
                 
                 var recipientUnreadCounts = document.data()?["recipientUnreadCounts"] as? [String: Int] ?? [:]
-                recipientUnreadCounts[recipientId] = (recipientUnreadCounts[recipientId] ?? 0) + 1
+                let currentCount = recipientUnreadCounts[recipientId] ?? 0
+                recipientUnreadCounts[recipientId] = currentCount + 1
                 self?.recipientUnreadCounts = (recipientUnreadCounts[recipientId] ?? 0)
-
-                let lastType = messageType == .text ? content : messageType == .image ? "Sent an image": messageType == .video ? "Sent an video" : messageType == .file ? "ent an file" : "Sent an location"
-                self?.db.collection("chats").document(chatId).updateData([
+                
+                let lastType = messageType == .text ? content :
+                              messageType == .image ? "Sent an image" :
+                              messageType == .video ? "Sent a video" :
+                              messageType == .file ? "Sent a file" : "Sent a location"
+                
+                let updateData: [String: Any] = [
                     "last_message": lastType,
-                    "last_message_date": Date(),
+                    "last_message_date": Timestamp(date: Date()),
                     "recipientUnreadCounts": recipientUnreadCounts
-                ])
+                ]
+                
+                self?.db.collection("chats").document(chatId).updateData(updateData) { error in
+                    if let error = error {
+                        print("Error updating chat: \(error.localizedDescription)")
+                    }
+                }
             }
         } catch {
             print("Error sending message: \(error.localizedDescription)")
         }
     }
-    
+
     private func getLastMessageText(messageType: Message.MessageType, initialMessage: String) -> String {
         switch messageType {
         case .text:
@@ -747,64 +821,6 @@ class ChatViewModel: ObservableObject {
             return "Sent a location"
         }
     }
-
-    
-    func uploadImage(_ image: UIImage,
-                        sender: String,
-                        recipientId: String,
-                        chatId: String,
-                        progressCallback: ((Double) -> Void)? = nil,
-                        completion: (() -> Void)? = nil) {
-            guard let imageData = image.jpegData(compressionQuality: 0.5) else { return }
-            
-            let storageRef = Storage.storage().reference()
-            let imageName = "\(UUID().uuidString).jpg"
-            let imageRef = storageRef.child("chat_images/\(chatId)/\(imageName)")
-            
-            let uploadTask = imageRef.putData(imageData) { [weak self] metadata, error in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    print("Image upload error: \(error.localizedDescription)")
-                    completion?()
-                    return
-                }
-                
-                imageRef.downloadURL { (url, error) in
-                    guard let downloadURL = url else {
-                        print("Could not get download URL")
-                        completion?()
-                        return
-                    }
-                    
-                    let message = Message(
-                        id: UUID().uuidString,
-                        sender: sender,
-                        recipientId: recipientId,
-                        content: downloadURL.absoluteString,
-                        timestamp: Date(),
-                        isRead: false,
-                        messageType: .image
-                    )
-                    
-                    do {
-                        try self.db.collection("chats")
-                            .document(chatId)
-                            .collection("messages")
-                            .document(message.id)
-                            .setData(from: message)
-                    } catch {
-                        print("Error sending image message: \(error.localizedDescription)")
-                    }
-                    completion?()
-                }
-            }
-            
-            uploadTask.observe(.progress) { snapshot in
-                let percentComplete = Double(snapshot.progress?.completedUnitCount ?? 0) / Double(snapshot.progress?.totalUnitCount ?? 1)
-                progressCallback?(percentComplete)
-            }
-        }
     
     func fetchUserStatus(userId: String) {
             let db = Firestore.firestore()
@@ -840,9 +856,154 @@ class ChatViewModel: ObservableObject {
 }
 
 
+
+
+
+extension Message: Equatable {}
+
+extension ChatViewModel {
+    // حفظ الرسائل محليًا
+    func saveMessagesLocally(chatId: String) {
+        let encoder = JSONEncoder()
+        do {
+            let encodedMessages = try encoder.encode(messages)
+            UserDefaults.standard.set(encodedMessages, forKey: "chat_messages_\(chatId)")
+            UserDefaults.standard.synchronize()
+        } catch {
+            print("Failed to save messages locally: \(error)")
+        }
+    }
+    
+    // استرجاع الرسائل محليًا
+    func loadLocalMessages(chatId: String) {
+        guard let data = UserDefaults.standard.data(forKey: "chat_messages_\(chatId)") else {
+            return
+        }
+        
+        let decoder = JSONDecoder()
+        do {
+            let localMessages = try decoder.decode([Message].self, from: data)
+            
+            // التحقق من وجود اتصال بالإنترنت
+            if NetworkMonitor.shared.isConnected {
+                updateMessagesWithFirestore(localMessages: localMessages, chatId: chatId)
+            } else {
+                // في حالة عدم وجود اتصال بالإنترنت، استخدم الرسائل المخزنة محليًا
+                self.messages = localMessages
+            }
+        } catch {
+            print("Failed to load local messages: \(error)")
+        }
+    }
+    
+    // تحديث الرسائل مع Firestore
+    private func updateMessagesWithFirestore(localMessages: [Message], chatId: String) {
+        let chatRef = db.collection("chats").document(chatId).collection("messages")
+        
+        chatRef
+            .order(by: "timestamp", descending: false)
+            .getDocuments { [weak self] querySnapshot, error in
+                guard let self = self,
+                      let documents = querySnapshot?.documents else { return }
+                
+                // استخراج رسائل Firestore
+                let firestoreMessages = documents.compactMap { document -> Message? in
+                    try? document.data(as: Message.self)
+                }
+                
+                // دمج الرسائل المحلية مع رسائل Firestore
+                var mergedMessages = localMessages
+                
+                for firestoreMessage in firestoreMessages {
+                    if !localMessages.contains(where: { $0.id == firestoreMessage.id }) {
+                        mergedMessages.append(firestoreMessage)
+                    }
+                }
+                
+                // فرز الرسائل حسب التاريخ
+                self.messages = mergedMessages.sorted { $0.timestamp < $1.timestamp }
+                
+                // حفظ الرسائل المحدثة محليًا
+                self.saveMessagesLocally(chatId: chatId)
+            }
+    }
+    
+    // تعديل وظيفة الاستماع للرسائل
+    func listenToMessages(chatId: String, currentUserId: String, recipientId: String) {
+        // استرجاع الرسائل المحلية أولاً
+        loadLocalMessages(chatId: chatId)
+        
+        let chatRef = db.collection("chats").document(chatId)
+        
+        listenerRegistration = chatRef
+            .collection("messages")
+            .order(by: "timestamp", descending: false)
+            .addSnapshotListener { [weak self] querySnapshot, error in
+                guard let self = self,
+                      let documents = querySnapshot?.documents else {
+                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
+                    return
+                }
+                
+                self.messages = documents.compactMap { document -> Message? in
+                    try? document.data(as: Message.self)
+                }
+                
+                // حفظ الرسائل محليًا
+                self.saveMessagesLocally(chatId: chatId)
+                
+                // تحديث حالة القراءة للرسائل
+                if isViewActive {
+                    self.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
+                }
+            }
+    }
+}
+
+import Network
+// مراقب حالة الشبكة
+class NetworkMonitor {
+    static let shared = NetworkMonitor()
+    
+    var isConnected: Bool = false
+    var networkStatusChanged: ((Bool) -> Void)?
+    private let monitor = NWPathMonitor()
+    
+    private init() {
+        setupNetworkMonitor()
+    }
+    
+    private func setupNetworkMonitor() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            self?.isConnected = path.status == .satisfied
+            DispatchQueue.main.async {
+                self?.networkStatusChanged?(self?.isConnected ?? false)
+            }
+        }
+    }
+    
+    func startMonitoring() {
+        let queue = DispatchQueue(label: "NetworkMonitor")
+        monitor.start(queue: queue)
+    }
+    
+    func stopMonitoring() {
+        monitor.cancel()
+    }
+}
+
+
 struct ScrollOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value += nextValue()
+        value = nextValue()
     }
 }
+
+struct ContentHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+

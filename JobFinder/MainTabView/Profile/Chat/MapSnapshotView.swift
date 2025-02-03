@@ -347,7 +347,6 @@ struct LocationPicker: UIViewControllerRepresentable {
                 if let currentLocation = locationManager.location?.coordinate {
                     // Use current location directly if available
                     if let mapView = self.mapView {
-                        addAnnotation(to: mapView, coordinate: currentLocation)
                         
                         let region = MKCoordinateRegion(
                             center: currentLocation,
@@ -391,7 +390,6 @@ struct LocationPicker: UIViewControllerRepresentable {
                   let mapView = self.mapView else { return }
             
             let coordinate = location.coordinate
-            addAnnotation(to: mapView, coordinate: coordinate)
             
             let region = MKCoordinateRegion(
                 center: coordinate,

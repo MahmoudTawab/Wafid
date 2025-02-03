@@ -210,6 +210,14 @@ struct NewMessageView: View {
     }
 }
 
+// ChatService.swift
+class ChatService {
+    static func createChatId(userId1: String, userId2: String) -> String {
+        let sortedIds = [userId1, userId2].sorted()
+        return sortedIds.joined(separator: "_")
+    }
+}
+
 class CreateNewMessageView: ObservableObject {
     @Published var searchText = ""
     @Published var ShowSearch = false

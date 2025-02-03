@@ -43,29 +43,20 @@ struct ChatUser: View {
                             .foregroundColor(.black)
                         
                         Spacer()
-                        
-//                        Button {
-//                            navigationManager.navigate(to: .NewMessageView)
-//                        } label: {
-//                            Image(systemName: "magnifyingglass")
-//                                .resizable()
-//                                .frame(width: 22,height: 22)
-//                                .foregroundColor(.black)
-//                        }.frame(width: 50,height: 50)
     
                     }.padding(.bottom,5)
                     
-
+                    let ID = IsEmployee ? user_id:company_id
                     ForEach(viewModel.chats) { chat in
-                        ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != user_id } ?? ""],currentUserId: chat.participantIds.first { $0 == user_id } ?? "")
+                    ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != ID } ?? ""],currentUserId: chat.participantIds.first { $0 == ID } ?? "")
                     .padding(.vertical)
                     .frame(width: UIScreen.main.bounds.width - 30,height: 80)
-                    .background(chat.unreadCountForUser(chat.participantIds.first { $0 == user_id } ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
+                    .background(chat.unreadCountForUser(chat.participantIds.first { $0 == ID} ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
                     .cornerRadius(10)
                     .clipped()
                         
                     .onTapGesture {
-                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: user_id, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != user_id } ?? "", recipientMail: chat.participantNames.first { $0 != user_mail } ?? ""))
+                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: ID, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != ID } ?? "", recipientMail: chat.otherParticipantName))
                     
                     }
                     }
@@ -123,13 +114,17 @@ struct ChatListRow: View {
     let chat: ChatListItem
     let userStatus: UserStatus?
     let currentUserId: String
+    
     @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
 
     var body: some View {
         HStack {
+            let ID = IsEmployee ? user_id:company_id
             ZStack(alignment: .bottomTrailing) {
                 // يمكنك إضافة صورة المستخدم هنا
-                WebImage(url: URL(string: chat.participantIds.first == user_id ? chat.ProfileImage[1] : chat.ProfileImage[0])) { image in
+                WebImage(url: URL(string: chat.participantIds.first == ID ? chat.ProfileImage[1] : chat.ProfileImage[0])) { image in
                     image.resizable()
                 } placeholder: {
                     Image(systemName: "person.crop.circle")
@@ -215,13 +210,7 @@ struct ChatListRow: View {
     }
 }
 
-// ChatService.swift
-class ChatService {
-    static func createChatId(userId1: String, userId2: String) -> String {
-        let sortedIds = [userId1, userId2].sorted()
-        return sortedIds.joined(separator: "_")
-    }
-}
+
 
 
 // ChatListModel.swift

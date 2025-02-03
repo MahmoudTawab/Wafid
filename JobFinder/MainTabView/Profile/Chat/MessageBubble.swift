@@ -99,14 +99,27 @@ struct MessageBubble: View {
                         .frame(maxHeight: 300)
                     }
                     
-                    Text(timestamp)
-                        .padding(6)
-                        .background(Color.black.opacity(0.3)) // خلفية نصف شفافة
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
-                        .font(Font.system(size: 11))
-                        .padding(6)
-                        .shadow(color: .black.opacity(0.6), radius: 2, x: 1, y: 1)
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(timestamp)
+                            .padding(6)
+                            .foregroundColor(.white)
+                            .font(Font.system(size: 11))
+
+                        if isCurrentUser {
+                            Image(message.isRead ? "Read" : "NotRead")
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(6)
+                    .background(Color.black.opacity(0.3)) // الخلفية
+                    .clipShape(RoundedRectangle(cornerRadius: 8)) // تطبيق الكورنر راديوس
+                    .shadow(color: .black.opacity(0.6), radius: 2, x: 1, y: 1)
+                    .frame(height: 26)
+
                 }
                 .background(isCurrentUser ? rgbToColor(red: 193, green: 140, blue: 70) : rgbToColor(red: 247, green: 247, blue: 247))
                 .cornerRadius(10)
@@ -134,13 +147,26 @@ struct MessageBubble: View {
                         
                         Spacer(minLength: 5)
                 }
-                Text(timestamp)
-                    .offset(y:3)
-                    .padding(.trailing)
-                    .background(.clear)
-                    .font(Font.system(size: ControlWidth(11)))
-                    .shadow(color: .black.opacity(0.6), radius: 10, x: 2, y: 4)
-                    .foregroundColor(isCurrentUser ?  .white : rgbToColor(red: 27, green: 26, blue: 87))
+                    
+                    HStack(alignment: .center, spacing: 5) {
+                        Text(timestamp)
+                            .offset(x: isCurrentUser ? 1 : 0,y:3)
+                            .background(.clear)
+                            .font(Font.system(size: ControlWidth(11)))
+                            .shadow(color: .black.opacity(0.6), radius: 10, x: 2, y: 4)
+                            .foregroundColor(isCurrentUser ?  .white : rgbToColor(red: 27, green: 26, blue: 87))
+                        
+                        if isCurrentUser {
+                            Image(message.isRead ? "Read" : "NotRead")
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .offset(y: 3)
+                                .frame(width: 12,height:12)
+                                .foregroundColor(.white)
+                        }
+                    }.padding(.trailing,6)
+    
                 }
                 .padding(.vertical)
                 .background(isCurrentUser ? rgbToColor(red: 193, green: 140, blue: 70) : rgbToColor(red: 247, green: 247, blue: 247))
@@ -160,14 +186,26 @@ struct MessageBubble: View {
                 ZStack(alignment: .bottomTrailing) {
                     MapSnapshotView(latitude: latitude, longitude: longitude)
                 
-                    Text(timestamp)
-                        .padding(6)
-                        .background(Color.black.opacity(0.3)) // خلفية نصف شفافة
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
-                        .font(Font.system(size: 11))
-                        .padding(6)
-                        .shadow(color: .black.opacity(0.6), radius: 2, x: 1, y: 1)
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(timestamp)
+                            .padding(6)
+                            .foregroundColor(.white)
+                            .font(Font.system(size: ControlWidth(11)))
+
+                        if isCurrentUser {
+                            Image(message.isRead ? "Read" : "NotRead")
+                                .renderingMode(.template)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 12, height: 12)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(6)
+                    .background(Color.black.opacity(0.3)) // الخلفية
+                    .clipShape(RoundedRectangle(cornerRadius: 8)) // تطبيق الكورنر راديوس
+                    .shadow(color: .black.opacity(0.6), radius: 2, x: 1, y: 1)
+                    .frame(height: 26)
                 }
                 .onTapGesture {
                     showMap = true
@@ -193,10 +231,23 @@ struct MessageBubble: View {
                     Spacer()
                     
                     Text(timestamp)
-                        .offset(x: 3, y: 3)
+                        .padding(.trailing, isCurrentUser ? 10:0)
+                        .offset(x: isCurrentUser ? 1 : 3, y: 3)
                         .background(.clear)
-                        .font(Font.system(size: 11))
+                        .font(Font.system(size: ControlWidth(11)))
                         .foregroundColor(isCurrentUser ? .white : rgbToColor(red: 161, green: 161, blue: 188))
+                    
+                    if isCurrentUser {
+                        Image(message.isRead ? "Read" : "NotRead")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .offset(x: 6, y: 3)
+                            .padding(.trailing, 0)
+                            .frame(width: 12,height:12)
+                            .foregroundColor(.white)
+                    }
+                    
                 }
                 .padding()
                 .background(isCurrentUser ? rgbToColor(red: 193, green: 140, blue: 70) : rgbToColor(red: 247, green: 247, blue: 247))

@@ -412,7 +412,7 @@ struct VideoCallApp: View {
                     ZStack(alignment: .center) {
                         Color.black
                             .edgesIgnoringSafeArea(.all)
-                            .animation(.easeInOut, value: 0.6)
+                            .animation(.easeInOut, value: 0.8)
                         
                         Text("loading...")
                         .foregroundColor(.white)

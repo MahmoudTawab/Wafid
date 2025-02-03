@@ -90,6 +90,7 @@ struct HomeCompanyView: View {
             // Loading Indicator
             if viewModel.showLoadingIndicator {
                 loadingOverlay
+                .padding(.bottom)
             }
             
             

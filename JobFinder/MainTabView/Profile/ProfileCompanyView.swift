@@ -11,6 +11,10 @@ import SwiftUI
 // View للملف الشخصي
 struct ProfileCompanyView: View {
     @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
+    @StateObject var ChatListviewModel = ChatListViewModel()
+    
     @StateObject private var viewModel = ProfileMainCompanyViewModel()
     @EnvironmentObject var navigationManager: NavigationManager
     
@@ -44,6 +48,7 @@ struct ProfileCompanyView: View {
     // Resume View State
     @State private var showPDFViewer: Bool = false
     
+    
     enum ProfileTab: String {
         case general = "General"
         case uploadCV = "Add User"
@@ -71,6 +76,8 @@ struct ProfileCompanyView: View {
                         // Form Fields Section
                         if selectedTab == .general {
                             formFieldsSection
+                        }else{
+                            Spacer()
                         }
                     }
                     .padding(.top, 40)
@@ -119,6 +126,7 @@ struct ProfileCompanyView: View {
         }
         
         .task {
+            ChatListviewModel.onlineStatusService.setupPresence(userId: IsEmployee ? user_id : company_id)
             if viewModel.userProfile == nil {
                 await viewModel.fetchUser()
                     if let profile = viewModel.userProfile {

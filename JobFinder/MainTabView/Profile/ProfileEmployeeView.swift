@@ -10,6 +10,10 @@ import SwiftUI
 // View للملف الشخصي
 struct ProfileEmployeeView: View {
     @AppStorage("user_id") var user_id: String = ""
+    @AppStorage("company_id") var company_id: String = ""
+    @AppStorage("IsEmployee") var IsEmployee: Bool = false
+    @StateObject var ChatListviewModel = ChatListViewModel()
+
     @StateObject private var viewModel = ProfileMainEmployeeViewModel()
     @EnvironmentObject var navigationManager: NavigationManager
     // Form Fields State
@@ -80,7 +84,10 @@ struct ProfileEmployeeView: View {
                         // Form Fields Section
                         if selectedTab == .general {
                             formFieldsSection
+                        }else{
+                            Spacer()
                         }
+
                     }
                     .padding(.top, 40)
                     .padding(.bottom, 100)
@@ -127,6 +134,7 @@ struct ProfileEmployeeView: View {
             }
         }
         .task {
+            ChatListviewModel.onlineStatusService.setupPresence(userId: IsEmployee ? user_id : company_id)
             if viewModel.userProfile == nil {
                 await viewModel.fetchUser()
                 if let profile = viewModel.userProfile {
