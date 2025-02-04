@@ -99,6 +99,7 @@ struct JobFinderApp: App {
                 }
                 
             }
+
         }
         
     }

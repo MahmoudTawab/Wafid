@@ -113,7 +113,7 @@ struct CareerInterestsView: View {
             Spacer()
             
             Button(action: {
-            navigationManager.navigate(to: .FirstScreen)
+            navigationManager.navigate(to: .SignUp)
             }) {
             Text("Next")
                 .font(.system(size: ControlWidth(16), weight: .bold))

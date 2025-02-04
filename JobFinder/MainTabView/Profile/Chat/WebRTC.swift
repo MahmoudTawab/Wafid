@@ -38,6 +38,7 @@ class CallManager: ObservableObject {
         let timestamp: Date
         let callerName: String
         let receiverName: String
+        var acceptedAt: Date? // Add this field
     }
     
     init() {
@@ -45,62 +46,48 @@ class CallManager: ObservableObject {
           setupCallListener()
       }
       
-    func setupCallStatusListener(for callId: String) {
-         // إلغاء أي listener سابق
-         callListener?.remove()
-         
-         // إنشاء listener جديد
-         callListener = db.collection("calls").document(callId)
-             .addSnapshotListener { [weak self] snapshot, error in
-                 guard let document = snapshot else { return }
-                 guard let callData = try? document.data(as: CallData.self) else { return }
-                 
-                 DispatchQueue.main.async {
-                     self?.handleCallStatusChange(callData)
-                 }
-             }
-     }
-     
-     private func handleCallStatusChange(_ callData: CallData) {
-         switch callData.status {
-         case "rejected", "ended":
-             // إنهاء المكالمة للطرفين
-             self.incomingCall = nil
-             self.outgoingCall = nil
-             self.isCallActive = false
-             callListener?.remove()
-             
-             RingtonePlayer.shared.stopRingtone()
-         case "accepted":
-             RingtonePlayer.shared.stopRingtone()
 
-             self.isCallActive = true
-             // يمكن هنا بدء إعداد المكالمة الفعلية
-             
-         default:
-             break
-         }
-     }
+    private func saveCallMessageToFirestore(_ message: Message, chatId: String) {
+        do {
+            try db.collection("chats").document(chatId)
+                .collection("messages")
+                .document(message.id)
+                .setData(from: message)
+        } catch {
+            print("Error saving call message: \(error)")
+        }
+    }
+
+    private func getChatId(user1: String, user2: String) -> String {
+        // Ensure consistent chat ID regardless of who initiated
+        let sortedIds = [user1, user2].sorted()
+        return "\(sortedIds[0])_\(sortedIds[1])"
+    }
+    
+    private func calculateCallDuration(startTime: Date) -> TimeInterval {
+    let endTime = Date()
+    return endTime.timeIntervalSince(startTime)
+    }
       
       // دالة بدء مكالمة فيديو
     func startVideoCall(currentUserId: String, recipientUserId: String, callerName: String,receiverName: String) {
-            let callId = UUID().uuidString
-            let callData = CallData(
-                id: callId,
-                callId: callId,
-                callerId: currentUserId,
-                receiverId: recipientUserId,
-                type: "video",
-                status: "pending",
-                timestamp: Date(),
-                callerName: callerName,
-                receiverName: receiverName
-            )
-            
-            saveCallToFirestore(callData)
-            self.outgoingCall = callData
-            setupCallStatusListener(for: callId) // إضافة مراقبة حالة المكالمة
-        }
+        let callId = UUID().uuidString
+        let callData = CallData(
+            id: callId,
+            callId: callId,
+            callerId: currentUserId,
+            receiverId: recipientUserId,
+            type: "video",
+            status: "pending",
+            timestamp: Date(),
+            callerName: callerName,
+            receiverName: receiverName
+        )
+        
+        saveCallToFirestore(callData)
+        self.outgoingCall = callData
+        setupCallStatusListener(for: callId)
+    }
         
         func startAudioCall(currentUserId: String, recipientUserId: String, callerName: String,receiverName: String) {
             let callId = UUID().uuidString
@@ -118,8 +105,44 @@ class CallManager: ObservableObject {
             
             saveCallToFirestore(callData)
             self.outgoingCall = callData
-            setupCallStatusListener(for: callId) // إضافة مراقبة حالة المكالمة
+            setupCallStatusListener(for: callId)
         }
+    
+    func setupCallStatusListener(for callId: String) {
+         // إلغاء أي listener سابق
+         callListener?.remove()
+         
+         // إنشاء listener جديد
+         callListener = db.collection("calls").document(callId)
+             .addSnapshotListener { [weak self] snapshot, error in
+                 guard let document = snapshot else { return }
+                 guard let callData = try? document.data(as: CallData.self) else { return }
+                 
+                 DispatchQueue.main.async {
+                     self?.handleCallStatusChange(callData)
+                 }
+             }
+     }
+    
+    private func handleCallStatusChange(_ callData: CallData) {
+        switch callData.status {
+        case "accepted":
+
+                RingtonePlayer.shared.stopRingtone()
+                self.isCallActive = true
+        
+        case "rejected", "ended":
+            
+            self.incomingCall = nil
+            self.outgoingCall = nil
+            self.isCallActive = false
+            callListener?.remove()
+            RingtonePlayer.shared.stopRingtone()
+            
+        default:
+            break
+        }
+    }
     
     // قبول المكالمة
     func acceptCall(callId: String) {
@@ -128,12 +151,17 @@ class CallManager: ObservableObject {
         ]) { [weak self] error in
             if error == nil {
                 self?.isCallActive = true
+                
+                self?.db.collection("calls").document(callId).updateData([
+                "acceptedAt": Date()
+                ])
+                
             }
         }
     }
     
-    func endCall(callId: String) {
-        db.collection("calls").document(callId).updateData([
+    func endCall(_ callData: CallData) {
+        db.collection("calls").document(callData.callId).updateData([
             "status": "ended"
         ]) { [weak self] error in
             if error == nil {
@@ -141,13 +169,15 @@ class CallManager: ObservableObject {
                 self?.outgoingCall = nil
                 self?.isCallActive = false
                 self?.callListener?.remove()
+                
+                self?.callType(callData)
             }
         }
     }
     
     
-    func rejectCall(callId: String) {
-        db.collection("calls").document(callId).updateData([
+    func rejectCall(_ callData: CallData) {
+        db.collection("calls").document(callData.callId).updateData([
             "status": "rejected"
         ]) { [weak self] error in
             if error == nil {
@@ -155,10 +185,30 @@ class CallManager: ObservableObject {
                 self?.outgoingCall = nil
                 self?.isCallActive = false
                 self?.callListener?.remove()
+                
+                self?.callType(callData)
             }
         }
     }
     
+    func callType(_ callData: CallData) {
+        let message = Message(
+            id: UUID().uuidString,
+            sender: callData.callerId,
+            recipientId: callData.receiverId,
+            content: "",
+            timestamp: callData.timestamp,
+            isRead: false,
+            messageType: .call,
+            callInfo: Message.CallInfo(
+                callType: callData.type,
+                status: callData.status,
+                duration: calculateCallDuration(startTime: callData.timestamp)
+            )
+        )
+        
+        saveCallMessageToFirestore(message, chatId: getChatId(user1: callData.callerId, user2: callData.receiverId))
+    }
 
     
     deinit {
@@ -186,7 +236,7 @@ class CallManager: ObservableObject {
                     if let latestCall = documents.compactMap({ try? $0.data(as: CallData.self) }).first {
                         DispatchQueue.main.async {
                             self?.incomingCall = latestCall
-                            self?.setupCallStatusListener(for: latestCall.callId) // إضافة مراقبة حالة المكالمة
+                            self?.setupCallStatusListener(for: latestCall.callId)
                             self?.showIncomingCallUI()
                         }
                     }
@@ -235,8 +285,6 @@ class CallManager: ObservableObject {
         
         URLSession.shared.dataTask(with: request).resume()
     }
-
-    
 }
 
 
@@ -267,7 +315,7 @@ struct IncomingCallView: View {
                 HStack(spacing: 50) {
                     // زر رفض المكالمة
                     Button(action: {
-                        callManager.rejectCall(callId: call.callId)
+                        callManager.rejectCall(call)
                     }) {
                         Image(systemName: "phone.down.fill")
                             .font(.system(size: 30))
@@ -320,7 +368,7 @@ struct OutgoingCallView: View {
                 
                 // زر إنهاء المكالمة
                 Button(action: {
-                    callManager.endCall(callId: call.callId)
+                    callManager.endCall(call)
                 }) {
                     Image(systemName: "phone.down.fill")
                         .font(.system(size: 30))

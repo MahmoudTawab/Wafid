@@ -60,7 +60,8 @@ struct ChatView: View {
     @State private var contentHeight: CGFloat = 0
 
     var body: some View {
-        VStack {
+        ZStack(alignment: .top) {
+            VStack {
                 HStack(spacing: 10) {
                     Image("Icon")
                         .resizable()
@@ -87,7 +88,7 @@ struct ChatView: View {
                     
                     HStack(spacing: 25) {
                         Button(action: {
-                            if NetworkMonitor.shared.isConnected {
+                            if !NetworkMonitor.shared.isConnected {
                                 hideKeyboard()
                                 callManager.startVideoCall(
                                     currentUserId: currentUserId,
@@ -105,9 +106,9 @@ struct ChatView: View {
                                 .frame(width: 28, height: 28)
                                 .foregroundColor(rgbToColor(red: 193, green: 140, blue: 70))
                         }.padding()
-
+                        
                         Button(action: {
-                            if NetworkMonitor.shared.isConnected {
+                            if !NetworkMonitor.shared.isConnected {
                                 hideKeyboard()
                                 callManager.startAudioCall(
                                     currentUserId: currentUserId,
@@ -127,183 +128,191 @@ struct ChatView: View {
                         }
                     }
                     .background(Color.clear)
-                    .onTapGesture {
-                        callManager.startVideoCall(
-                            currentUserId: currentUserId,
-                            recipientUserId: recipientId,
-                            callerName: currentMail,
-                            receiverName: recipientMail
-                        )
-                    }
                 }
                 .offset(y:-30)
                 .padding(.horizontal)
-            
-            GeometryReader { outerGeometry in
-                ScrollView {
-                    ScrollViewReader { proxy in
-                        VStack {
-                            GeometryReader { geometry in
-                                Color.clear
-                                    .preference(key: ScrollOffsetPreferenceKey.self,
-                                                value: geometry.frame(in: .named("scroll")).minY)
-                            }
-                            .frame(height: 0)
-                            
-                            LazyVStack {
-                                ForEach(viewModel.messages) { message in
-                                    MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
-                                        // Show Image
-                                    }
-                                    .padding(.horizontal)
-                                    .id(message.id)
-                                }
-                            }
-                            .background(
-                                GeometryReader { contentGeometry in
+                
+                GeometryReader { outerGeometry in
+                    ScrollView {
+                        ScrollViewReader { proxy in
+                            VStack {
+                                GeometryReader { geometry in
                                     Color.clear
-                                        .preference(key: ContentHeightPreferenceKey.self,
-                                                    value: contentGeometry.size.height)
+                                        .preference(key: ScrollOffsetPreferenceKey.self,
+                                                    value: geometry.frame(in: .named("scroll")).minY)
                                 }
-                            )
-                        }
-                        .padding(.top, 5)
-                        .onChange(of: viewModel.messages.count) { _ in
-                            withAnimation {
-                                if let lastId = viewModel.messages.last?.id {
-                                    proxy.scrollTo(lastId, anchor: .bottom)
-                                    lastMessageId = lastId
-                                }
-                            }
-                        }
-                        .onAppear {
-                            DispatchQueue.main.async {
-                                scrollViewProxy = proxy
-                                if let lastId = viewModel.messages.last?.id {
-                                    proxy.scrollTo(lastId, anchor: .bottom)
-                                    lastMessageId = lastId
-                                }
-                            }
-                        }
-                    }
-                }
-                .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
-                    checkScrollButtonVisibility(offset: offset)
-                }
-                .onPreferenceChange(ContentHeightPreferenceKey.self) { height in
-                    contentHeight = height
-                }
-                .onChange(of: outerGeometry.size.height) { newHeight in
-                    withAnimation {
-                        if let lastId = viewModel.messages.last?.id {
-                            scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
-                        }
-                    }
-                }
-            }
-            .overlay(
-                VStack {
-                    Spacer()
-                    if showScrollButton {
-                        HStack {
-                            Button(action: {
-                                withAnimation {
-                                    if let lastId = lastMessageId {
-                                        scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                                .frame(height: 0)
+                                
+                                LazyVStack {
+                                    ForEach(viewModel.messages) { message in
+                                        MessageBubble(message: message, isCurrentUser: message.sender == currentUserId, isOnline: viewModel.is_online, currentImage: currentImage, recipientImage: recipientImage) { image in
+                                            
+                                            self.image = image
+                                            showImageViewer = true
+                                            hideKeyboard()
+                                        }
+                                        .padding(.horizontal)
+                                        .id(message.id)
                                     }
                                 }
-                            }) {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .font(.system(size: 35))
-                                    .foregroundColor(Color.orange)
-                                    .background(Color.white)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
+                                .background(
+                                    GeometryReader { contentGeometry in
+                                        Color.clear
+                                            .preference(key: ContentHeightPreferenceKey.self,
+                                                        value: contentGeometry.size.height)
+                                    }
+                                )
                             }
-                            .padding(.leading, 16)
-                            .padding(.bottom, 10)
-                            
-                            Spacer()
+                            .padding(.top, 5)
+                            .onChange(of: viewModel.messages.count) { _ in
+                                withAnimation {
+                                    if let lastId = viewModel.messages.last?.id {
+                                        proxy.scrollTo(lastId, anchor: .bottom)
+                                        lastMessageId = lastId
+                                    }
+                                }
+                            }
+                            .onAppear {
+                                DispatchQueue.main.async {
+                                    scrollViewProxy = proxy
+                                    if let lastId = viewModel.messages.last?.id {
+                                        proxy.scrollTo(lastId, anchor: .bottom)
+                                        lastMessageId = lastId
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .coordinateSpace(name: "scroll")
+                    .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                        checkScrollButtonVisibility(offset: offset)
+                    }
+                    .onPreferenceChange(ContentHeightPreferenceKey.self) { height in
+                        contentHeight = height
+                    }
+                    .onChange(of: outerGeometry.size.height) { newHeight in
+                        withAnimation {
+                            if let lastId = viewModel.messages.last?.id {
+                                scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                            }
                         }
                     }
                 }
-            )
-            .offset(y:-25)
-            
-            if isUploading {
-                HStack(spacing: 10) {
-                ActivityIndicator(isAnimating: $isUploading)
-                    
-                Text("Loading...")
-                .font(.headline)
-                .foregroundColor(.gray)
-                Spacer()
+                .overlay(
+                    VStack {
+                        Spacer()
+                        if showScrollButton {
+                            HStack {
+                                Button(action: {
+                                    withAnimation {
+                                        if let lastId = lastMessageId {
+                                            scrollViewProxy?.scrollTo(lastId, anchor: .bottom)
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.system(size: 35))
+                                        .foregroundColor(Color.orange)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                        .shadow(radius: 4)
+                                }
+                                .padding(.leading, 16)
+                                .padding(.bottom, 10)
+                                
+                                Spacer()
+                            }
+                        }
+                    }
+                )
+                .offset(y:-25)
+                
+                if isUploading {
+                    HStack(spacing: 10) {
+                        ActivityIndicator(isAnimating: $isUploading)
+                        
+                        Text("Loading...")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                        Spacer()
+                    }
+                    .padding(.horizontal)
                 }
+                
+                HStack(alignment: .bottom) {
+                    Button(action: {
+                        isEmoji.toggle()
+                    }) {
+                        Image("Frame")
+                            .resizable()
+                            .frame(width: 28,height: 28)
+                    }
+                    
+                    
+                    EmojiTextView(text: $messageText, placeholder: "write a message...", isEmoji: $isEmoji)
+                        .background(Color.clear)
+                        .frame(minHeight: 30, maxHeight: 190)
+                        .frame(width: UIScreen.main.bounds.width - 140,height: calculateTextViewHeight())
+                        .tint(rgbToColor(red: 193, green: 140, blue: 70))
+                    
+                    
+                    
+                    Menu {
+                        Button(action: { showImagePicker = true }) {
+                            Label("Photo", systemImage: "photo")
+                                .foregroundColor(.black)
+                        }
+                        
+                        Button(action: { showVideoPicker = true }) {
+                            Label("Video", systemImage: "video.fill")
+                                .foregroundColor(.black)
+                        }
+                        
+                        Button(action: { showFilePicker = true }) {
+                            Label("File", systemImage: "doc.fill")
+                                .foregroundColor(.black)
+                        }
+                        
+                        Button(action: { showLocationPicker = true }) {
+                            Label("Location", systemImage: "location.fill")
+                                .foregroundColor(.black)
+                        }
+                    } label: {
+                        Image("Frame 2")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                    }
+                    
+                    Button(action: {
+                        guard !messageText.isEmpty else { return }
+                        
+                        viewModel.createNewChat(currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail, initialMessage: messageText)
+                        messageText = ""
+                    }) {
+                        Image("Group")
+                            .resizable()
+                            .frame(width: 40,height: 40)
+                    }
+                    .offset(y:8)
+                    .opacity(!messageText.isEmpty ? 1:0.6)
+                    .disabled(!messageText.isEmpty ? false:true)
+                    
+                }
+                .offset(y:-15)
                 .padding(.horizontal)
             }
             
-            HStack(alignment: .bottom) {
-                Button(action: {
-                    isEmoji.toggle()
-                }) {
-                    Image("Frame")
-                        .resizable()
-                        .frame(width: 28,height: 28)
-                }
-                
-                
-                EmojiTextView(text: $messageText, placeholder: "write a message...", isEmoji: $isEmoji)
-                    .background(Color.clear)
-                    .frame(minHeight: 30, maxHeight: 190)
-                    .frame(width: UIScreen.main.bounds.width - 140,height: calculateTextViewHeight())
-                    .tint(rgbToColor(red: 193, green: 140, blue: 70))
-                
-                
-
-                Menu {
-                    Button(action: { showImagePicker = true }) {
-                        Label("Photo", systemImage: "photo")
-                            .foregroundColor(.black)
-                    }
-                    
-                    Button(action: { showVideoPicker = true }) {
-                        Label("Video", systemImage: "video.fill")
-                            .foregroundColor(.black)
-                    }
-                    
-                    Button(action: { showFilePicker = true }) {
-                        Label("File", systemImage: "doc.fill")
-                            .foregroundColor(.black)
-                    }
-                    
-                    Button(action: { showLocationPicker = true }) {
-                        Label("Location", systemImage: "location.fill")
-                            .foregroundColor(.black)
-                    }
-                } label: {
-                    Image("Frame 2")
-                        .resizable()
-                        .frame(width: 25, height: 25)
-                }
-                
-                Button(action: {
-                    guard !messageText.isEmpty else { return }
-                    
-                    viewModel.createNewChat(currentImage: currentImage,recipientImage: recipientImage , currentUserId: currentUserId, currentMail: currentMail, recipientId: recipientId, recipientMail: recipientMail, initialMessage: messageText)
-                    messageText = ""
-                }) {
-                    Image("Group")
-                        .resizable()
-                        .frame(width: 40,height: 40)
-                }
-                .offset(y:8)
-                .opacity(!messageText.isEmpty ? 1:0.6)
-                .disabled(!messageText.isEmpty ? false:true)
-                
+            
+            // Alert Message
+            if showAlert {
+                AnimatedToastMessage(
+                    showingErrorMessageisValid: $showAlert,
+                    MassegeContent: .constant("برجاء التحقق من الاتصال بالإنترنت"),
+                    TypeToast: .error,
+                    FrameHeight: .constant(65)
+                )
+                .padding(.top,0)
             }
-            .offset(y:-15)
-            .padding(.horizontal)
         }
         .preferredColorScheme(.light)
         .background(rgbToColor(red: 255, green: 255, blue: 255))
@@ -367,9 +376,6 @@ struct ChatView: View {
             sendLocation(location)
         }
 
-        .alert(isPresented: $showAlert) {
-        Alert(title: Text("خطأ"), message: Text("برجاء التحقق من الاتصال بالإنترنت"), dismissButton: .default(Text("موافق")))
-        }
     }
     
     private func hideKeyboard() {
@@ -555,6 +561,7 @@ struct Message: Identifiable, Codable {
     var timestamp: Date
     var isRead: Bool
     var messageType: MessageType
+    var callInfo: CallInfo? // Optional call information
 
     enum MessageType: String, Codable {
         case text
@@ -562,6 +569,7 @@ struct Message: Identifiable, Codable {
         case video
         case file
         case location
+        case call
     }
     
     enum CodingKeys: String, CodingKey {
@@ -572,6 +580,24 @@ struct Message: Identifiable, Codable {
         case timestamp
         case isRead = "is_read"
         case messageType = "message_type"
+        case callInfo
+    }
+    
+    struct CallInfo: Codable {
+        let callType: String // "audio" or "video"
+        let status: String // "missed", "ended", etc.
+        let duration: TimeInterval?
+    }
+    
+    init(id: String, sender: String, recipientId: String, content: String, timestamp: Date, isRead: Bool, messageType: MessageType, callInfo: CallInfo? = nil) {
+        self.id = id
+        self.sender = sender
+        self.recipientId = recipientId
+        self.content = content
+        self.timestamp = timestamp
+        self.isRead = isRead
+        self.messageType = messageType
+        self.callInfo = callInfo
     }
 }
 
@@ -589,33 +615,6 @@ class ChatViewModel: ObservableObject {
     
     init() {}
     
-    // 3. تحديث وظيفة الاستماع للرسائل وتحديث حالة القراءة
-//    func listenToMessages(chatId: String, currentUserId: String, recipientId: String) {
-//        // إنشاء مرجع للمحادثة
-//        let chatRef = db.collection("chats").document(chatId)
-//        
-//        // الاستماع للرسائل
-//        listenerRegistration = chatRef
-//            .collection("messages")
-//            .order(by: "timestamp", descending: false)
-//            .addSnapshotListener { [weak self] querySnapshot, error in
-//                guard let self = self,
-//                      let documents = querySnapshot?.documents else {
-//                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
-//                    return
-//                }
-//                
-//                self.messages = documents.compactMap { document -> Message? in
-//                    try? document.data(as: Message.self)
-//                }
-//                
-//                // تحديث حالة القراءة للرسائل إذا كان المستخدم الحالي هو المستقبل
-//                if isViewActive {
-//                    self.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
-//                }
-//            }
-//    }
-
     // 4. تحديث وظيفة تحديث حالة القراءة
     func markMessagesAsRead(chatId: String, currentUserId: String) {
         let batch = db.batch()
@@ -788,7 +787,8 @@ class ChatViewModel: ObservableObject {
                 let lastType = messageType == .text ? content :
                               messageType == .image ? "Sent an image" :
                               messageType == .video ? "Sent a video" :
-                              messageType == .file ? "Sent a file" : "Sent a location"
+                              messageType == .file ? "Sent a file" : 
+                              messageType == .location ? "Sent a location" : "Missed call"
                 
                 let updateData: [String: Any] = [
                     "last_message": lastType,
@@ -819,6 +819,8 @@ class ChatViewModel: ObservableObject {
             return "Sent a file"
         case .location:
             return "Sent a location"
+        case .call:
+            return "Missed call"
         }
     }
     
@@ -859,7 +861,6 @@ class ChatViewModel: ObservableObject {
 
 
 
-extension Message: Equatable {}
 
 extension ChatViewModel {
     // حفظ الرسائل محليًا
@@ -960,37 +961,32 @@ extension ChatViewModel {
     }
 }
 
-import Network
-// مراقب حالة الشبكة
-class NetworkMonitor {
-    static let shared = NetworkMonitor()
-    
-    var isConnected: Bool = false
-    var networkStatusChanged: ((Bool) -> Void)?
-    private let monitor = NWPathMonitor()
-    
-    private init() {
-        setupNetworkMonitor()
-    }
-    
-    private func setupNetworkMonitor() {
-        monitor.pathUpdateHandler = { [weak self] path in
-            self?.isConnected = path.status == .satisfied
-            DispatchQueue.main.async {
-                self?.networkStatusChanged?(self?.isConnected ?? false)
-            }
-        }
-    }
-    
-    func startMonitoring() {
-        let queue = DispatchQueue(label: "NetworkMonitor")
-        monitor.start(queue: queue)
-    }
-    
-    func stopMonitoring() {
-        monitor.cancel()
-    }
-}
+// 3. تحديث وظيفة الاستماع للرسائل وتحديث حالة القراءة
+//    func listenToMessages(chatId: String, currentUserId: String, recipientId: String) {
+//        // إنشاء مرجع للمحادثة
+//        let chatRef = db.collection("chats").document(chatId)
+//
+//        // الاستماع للرسائل
+//        listenerRegistration = chatRef
+//            .collection("messages")
+//            .order(by: "timestamp", descending: false)
+//            .addSnapshotListener { [weak self] querySnapshot, error in
+//                guard let self = self,
+//                      let documents = querySnapshot?.documents else {
+//                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
+//                    return
+//                }
+//
+//                self.messages = documents.compactMap { document -> Message? in
+//                    try? document.data(as: Message.self)
+//                }
+//
+//                // تحديث حالة القراءة للرسائل إذا كان المستخدم الحالي هو المستقبل
+//                if isViewActive {
+//                    self.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
+//                }
+//            }
+//    }
 
 
 struct ScrollOffsetPreferenceKey: PreferenceKey {

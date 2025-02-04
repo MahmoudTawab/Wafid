@@ -267,7 +267,7 @@ struct JobRecommendationView: View {
     
     private func navigateTapGesture() {
         if let companyInfo = viewModel.jobData?.parsedCompanyInfo?.first {
-            checkExistingChat(currentUserId: user_id , recipientId: "") { existingChatId in
+            checkExistingChat(currentUserId: user_id , recipientId: "\(companyInfo.id)") { existingChatId in
                 
             if let chatId = existingChatId {
             // Existing chat found - navigate to it
@@ -281,7 +281,7 @@ struct JobRecommendationView: View {
                                 ))
                 } else {
                     // No existing chat - create new one
-                    let newChatId = ChatService.createChatId(userId1: user_id, userId2: "")
+                    let newChatId = ChatService.createChatId(userId1: user_id, userId2: "\(companyInfo.id)")
                     navigationManager.navigate(to: .ChatView(
                         chatId: newChatId,
                         currentImage: "",
@@ -416,6 +416,11 @@ class JobRecommendationViewModel: ObservableObject {
     private var procedureName = "dzUq/PJhryxiecJR9/vEdg=="
     
     func fetchData(jobs_id: String) async {
+        
+        if let jobs = jobData {
+            return
+        }
+        
         showLoadingIndicator = true
         alertMessage = nil
         

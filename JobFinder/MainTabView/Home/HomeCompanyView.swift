@@ -906,7 +906,7 @@ class HomeViewCompanyViewModel: ObservableObject {
     }
     
     func fetchData2() async {
-        if let jobResponse = JobResponse {
+        if JobResponse != nil {
             return
         }
         

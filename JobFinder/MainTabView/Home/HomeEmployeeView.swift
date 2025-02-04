@@ -502,8 +502,7 @@ class HomeViewEmployeeViewModel: ObservableObject {
     
     func fetchData() async {
 
-        if let jobs = jobs, !jobs.isEmpty,
-           let categories = favouriteCategories, !categories.isEmpty {
+        if let jobs = jobs, !jobs.isEmpty {
             return
         }
         
@@ -549,6 +548,9 @@ class HomeViewEmployeeViewModel: ObservableObject {
                             if let categoriesData = categoriesString.data(using: .utf8),
                                let categories = try? JSONDecoder().decode([FavouriteCategory].self, from: categoriesData) {
                                 self.favouriteCategories = categories
+                                if favouriteCategories?.count == 0 {
+                                selectCategory("All Job")
+                                }
                             }
                         }
                         

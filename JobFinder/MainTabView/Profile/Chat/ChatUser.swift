@@ -46,19 +46,32 @@ struct ChatUser: View {
     
                     }.padding(.bottom,5)
                     
-                    let ID = IsEmployee ? user_id:company_id
-                    ForEach(viewModel.chats) { chat in
-                    ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != ID } ?? ""],currentUserId: chat.participantIds.first { $0 == ID } ?? "")
-                    .padding(.vertical)
-                    .frame(width: UIScreen.main.bounds.width - 30,height: 80)
-                    .background(chat.unreadCountForUser(chat.participantIds.first { $0 == ID} ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
-                    .cornerRadius(10)
-                    .clipped()
-                        
-                    .onTapGesture {
-                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: ID, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != ID } ?? "", recipientMail: chat.otherParticipantName))
-                    
-                    }
+                    // التحقق من وجود محادثات
+                    if viewModel.chats.isEmpty {
+                        VStack {
+                            Spacer()
+                            Text("There are no conversations to show.")
+                                .multilineTextAlignment(.center)
+                                .font(.system(size: ControlWidth(18), weight: .medium))
+                                .foregroundColor(.gray)
+                            Spacer()
+                        }
+                        .frame(width: UIScreen.main.bounds.width - 60, height: UIScreen.main.bounds.height - 200)
+                    } else {
+                        let ID = IsEmployee ? user_id:company_id
+                        ForEach(viewModel.chats) { chat in
+                            ChatListRow(chat: chat, userStatus: viewModel.userStatuses[chat.participantIds.first { $0 != ID } ?? ""],currentUserId: chat.participantIds.first { $0 == ID } ?? "")
+                                .padding(.vertical)
+                                .frame(width: UIScreen.main.bounds.width - 30,height: 80)
+                                .background(chat.unreadCountForUser(chat.participantIds.first { $0 == ID} ?? "") != 0 ? rgbToColor(red: 255, green: 247, blue: 236) : .white)
+                                .cornerRadius(10)
+                                .clipped()
+                            
+                                .onTapGesture {
+                                    navigationManager.navigate(to: .ChatView(chatId: chat.id, currentImage: chat.ProfileImage[0],recipientImage: chat.ProfileImage[1], currentUserId: ID, currentMail: user_mail, recipientId: chat.participantIds.first { $0 != ID } ?? "", recipientMail: chat.otherParticipantName))
+                                    
+                                }
+                        }
                     }
                     
                     Spacer()

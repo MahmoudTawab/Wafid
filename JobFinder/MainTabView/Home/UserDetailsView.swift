@@ -172,7 +172,7 @@ struct HeaderView: View {
                         currentUserId: company_id ,
                         currentMail: user_mail,
                         recipientId: "\(recipientUserId)",
-                        recipientMail: user.fullName ?? user.email ?? ""
+                        recipientMail: user.fullName ?? user.email ?? "Unknown User"
                     ))
                 } else {
                     // No existing chat - create new one
