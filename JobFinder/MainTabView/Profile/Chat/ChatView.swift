@@ -961,33 +961,6 @@ extension ChatViewModel {
     }
 }
 
-// 3. تحديث وظيفة الاستماع للرسائل وتحديث حالة القراءة
-//    func listenToMessages(chatId: String, currentUserId: String, recipientId: String) {
-//        // إنشاء مرجع للمحادثة
-//        let chatRef = db.collection("chats").document(chatId)
-//
-//        // الاستماع للرسائل
-//        listenerRegistration = chatRef
-//            .collection("messages")
-//            .order(by: "timestamp", descending: false)
-//            .addSnapshotListener { [weak self] querySnapshot, error in
-//                guard let self = self,
-//                      let documents = querySnapshot?.documents else {
-//                    print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
-//                    return
-//                }
-//
-//                self.messages = documents.compactMap { document -> Message? in
-//                    try? document.data(as: Message.self)
-//                }
-//
-//                // تحديث حالة القراءة للرسائل إذا كان المستخدم الحالي هو المستقبل
-//                if isViewActive {
-//                    self.markMessagesAsRead(chatId: chatId, currentUserId: currentUserId)
-//                }
-//            }
-//    }
-
 
 struct ScrollOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0

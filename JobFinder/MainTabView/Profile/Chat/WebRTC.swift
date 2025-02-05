@@ -45,30 +45,7 @@ class CallManager: ObservableObject {
           // بدء الاستماع للمكالمات الواردة عند تهيئة المدير
           setupCallListener()
       }
-      
-
-    private func saveCallMessageToFirestore(_ message: Message, chatId: String) {
-        do {
-            try db.collection("chats").document(chatId)
-                .collection("messages")
-                .document(message.id)
-                .setData(from: message)
-        } catch {
-            print("Error saving call message: \(error)")
-        }
-    }
-
-    private func getChatId(user1: String, user2: String) -> String {
-        // Ensure consistent chat ID regardless of who initiated
-        let sortedIds = [user1, user2].sorted()
-        return "\(sortedIds[0])_\(sortedIds[1])"
-    }
-    
-    private func calculateCallDuration(startTime: Date) -> TimeInterval {
-    let endTime = Date()
-    return endTime.timeIntervalSince(startTime)
-    }
-      
+            
       // دالة بدء مكالمة فيديو
     func startVideoCall(currentUserId: String, recipientUserId: String, callerName: String,receiverName: String) {
         let callId = UUID().uuidString
@@ -87,6 +64,8 @@ class CallManager: ObservableObject {
         saveCallToFirestore(callData)
         self.outgoingCall = callData
         setupCallStatusListener(for: callId)
+        RingtonePlayer.shared.playRingtone(forResource: "JLCF6UP_NCw")
+        
     }
         
         func startAudioCall(currentUserId: String, recipientUserId: String, callerName: String,receiverName: String) {
@@ -106,6 +85,8 @@ class CallManager: ObservableObject {
             saveCallToFirestore(callData)
             self.outgoingCall = callData
             setupCallStatusListener(for: callId)
+            
+            RingtonePlayer.shared.playRingtone(forResource: "JLCF6UP_NCw")
         }
     
     func setupCallStatusListener(for callId: String) {
@@ -161,6 +142,7 @@ class CallManager: ObservableObject {
     }
     
     func endCall(_ callData: CallData) {
+        RingtonePlayer.shared.stopRingtone()
         db.collection("calls").document(callData.callId).updateData([
             "status": "ended"
         ]) { [weak self] error in
@@ -177,6 +159,7 @@ class CallManager: ObservableObject {
     
     
     func rejectCall(_ callData: CallData) {
+        RingtonePlayer.shared.stopRingtone()
         db.collection("calls").document(callData.callId).updateData([
             "status": "rejected"
         ]) { [weak self] error in
@@ -192,6 +175,8 @@ class CallManager: ObservableObject {
     }
     
     func callType(_ callData: CallData) {
+        let chatId = ChatService.createChatId(userId1: callData.callerId, userId2: callData.receiverId)
+
         let message = Message(
             id: UUID().uuidString,
             sender: callData.callerId,
@@ -207,7 +192,72 @@ class CallManager: ObservableObject {
             )
         )
         
+
+        let chatData = ChatListItem(
+            id: chatId,
+            lastMessage: "Missed call",
+            ProfileImage: ["", ""],
+            lastMessageDate: Date(),
+            participantIds: [callData.callerId, callData.receiverId],
+            participantNames: [callData.receiverName, callData.callerName],
+            recipientUnreadCounts: [callData.receiverId: recipientUnreadCounts]
+        )
+
+        do {
+            try db.collection("chats").document(chatId).setData(from: chatData)
+        }catch {
+            print("Error creating chat: \(error.localizedDescription)")
+        }
+        
         saveCallMessageToFirestore(message, chatId: getChatId(user1: callData.callerId, user2: callData.receiverId))
+    }
+    
+    var recipientUnreadCounts:Int = 0
+    private func saveCallMessageToFirestore(_ message: Message, chatId: String) {
+        let recipientId = message.recipientId
+        do {
+            try db.collection("chats").document(chatId)
+                .collection("messages")
+                .document(message.id)
+                .setData(from: message)
+            
+            db.collection("chats").document(chatId).getDocument { [weak self] snapshot, error in
+                guard let document = snapshot, document.exists else { return }
+                
+                var recipientUnreadCounts = document.data()?["recipientUnreadCounts"] as? [String: Int] ?? [:]
+                let currentCount = recipientUnreadCounts[recipientId] ?? 0
+                recipientUnreadCounts[recipientId] = currentCount + 1
+                self?.recipientUnreadCounts = (recipientUnreadCounts[recipientId] ?? 0)
+                                
+                let updateData: [String: Any] = [
+                    "last_message": "Missed call",
+                    "last_message_date": Timestamp(date: Date()),
+                    "recipientUnreadCounts": recipientUnreadCounts
+                ]
+                
+                self?.db.collection("chats").document(chatId).updateData(updateData) { error in
+                    if let error = error {
+                        print("Error updating chat: \(error.localizedDescription)")
+                    }
+                }
+            }
+        
+            
+        } catch {
+            print("Error saving call message: \(error)")
+        }
+    }
+    
+    
+    private func getChatId(user1: String, user2: String) -> String {
+        // Ensure consistent chat ID regardless of who initiated
+        let sortedIds = [user1, user2].sorted()
+        return "\(sortedIds[0])_\(sortedIds[1])"
+    }
+    
+    private func calculateCallDuration(startTime: Date) -> TimeInterval {
+    let endTime = Date()
+    return endTime.timeIntervalSince(startTime)
     }
 
     
@@ -237,18 +287,13 @@ class CallManager: ObservableObject {
                         DispatchQueue.main.async {
                             self?.incomingCall = latestCall
                             self?.setupCallStatusListener(for: latestCall.callId)
-                            self?.showIncomingCallUI()
+                            RingtonePlayer.shared.playRingtone()
                         }
                     }
                 }
         }
 
     
-    // عرض واجهة المكالمة الواردة
-    private func showIncomingCallUI() {
-        // يمكنك هنا تشغيل صوت الرنين
-        RingtonePlayer.shared.playRingtone()
-    }
     
     // إرسال إشعار للمستخدم
     private func sendPushNotification(to userId: String, callData: CallData) {
@@ -361,6 +406,9 @@ struct OutgoingCallView: View {
                     .font(.title2)
                     .foregroundColor(.white)
                 
+                Text(call.type == "video" ? "مكالمة فيديو" : "مكالمة صوتية")
+                    .foregroundColor(.white)
+                
                 Image(systemName: call.type == "video" ? "video.fill" : "phone.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white)
@@ -391,8 +439,8 @@ class RingtonePlayer {
     private var queuePlayer: AVQueuePlayer?
 
     // تشغيل النغمة مع التكرار
-    func playRingtone() {
-        guard let url = Bundle.main.url(forResource: "WhatsApp", withExtension: "mp3") else {
+    func playRingtone(forResource:String = "WhatsApp") {
+        guard let url = Bundle.main.url(forResource: forResource, withExtension: "mp3") else {
             print("❌ ملف الصوت غير موجود!")
             return
         }
@@ -400,7 +448,6 @@ class RingtonePlayer {
         let playerItem = AVPlayerItem(url: url)
         queuePlayer = AVQueuePlayer(playerItem: playerItem)
         playerLooper = AVPlayerLooper(player: queuePlayer!, templateItem: playerItem)
-
         queuePlayer?.play()
         print("✅ تشغيل النغمة...")
     }

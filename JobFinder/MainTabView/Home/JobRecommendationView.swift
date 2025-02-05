@@ -28,6 +28,12 @@ struct JobRecommendationView: View {
                 // Header
                 ZStack {
                     Image("Company Job")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: UIScreen.main.bounds.height / 2)
+                        .padding(.top, -20)
+
+                    
                     VStack(spacing: 20) {
                         // Navigation header
                         HStack(spacing: 10) {
@@ -116,7 +122,7 @@ struct JobRecommendationView: View {
                     .padding(.vertical, 20)
                     .frame(width: UIScreen.main.bounds.width - 30)
                 }
-                
+
                 // Content
                 
                 VStack(alignment: .leading, spacing: 20) {
@@ -211,7 +217,6 @@ struct JobRecommendationView: View {
                 .background(Color.clear)
                 .frame(width: UIScreen.main.bounds.width - 30)
             }
-            .padding(.top,-30)
             .padding(.bottom, 20)
             .frame(height: UIScreen.main.bounds.height - 20)
             }
@@ -417,7 +422,7 @@ class JobRecommendationViewModel: ObservableObject {
     
     func fetchData(jobs_id: String) async {
         
-        if let jobs = jobData {
+        if jobData != nil {
             return
         }
         

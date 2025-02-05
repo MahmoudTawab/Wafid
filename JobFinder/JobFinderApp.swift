@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate ,UNUserNotificationCenterDele
     @AppStorage("user_id") var user_id: String = ""
     @AppStorage("IsEmployee") var IsEmployee: Bool = true
     @AppStorage("company_id") var company_id: String = ""
+    @StateObject private var callManager = CallManager.shared
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
         // إعداد إشعارات Push
@@ -33,6 +34,12 @@ class AppDelegate: NSObject, UIApplicationDelegate ,UNUserNotificationCenterDele
         application.registerForRemoteNotifications()
         
         return true
+    }
+    
+    func applicationWillTerminate(_ application: UIApplication) {
+        callManager.incomingCall = nil
+        callManager.outgoingCall = nil
+        callManager.isCallActive = false
     }
     
     // التعامل مع إشعارات المكالمات

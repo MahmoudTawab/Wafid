@@ -41,14 +41,19 @@ struct HomeCompanyView: View {
                             .padding(10)
                             .tint(.gray)
                             .frame(height: 44)
-                            .onChange(of: viewModel.searchText) { _ in
+                            .onChange(of: viewModel.searchText) { searchText in
+                                if searchText.isEmpty {
+                                viewModel.searchResults = nil
+                                }else{
                                 viewModel.handleSearchTextChange()
+                                }
                             }
                             
                             Spacer()
                             Image("search-normal")
                                 .padding(.trailing, 10)
                                 .foregroundColor(.gray)
+                                
                          }
                         .background(rgbToColor(red: 255, green: 247, blue: 236))
                         .cornerRadius(20)
@@ -407,6 +412,7 @@ struct SearchResultsView: View {
                 .frame(width: UIScreen.main.bounds.width - 30) // ضبط العرض هنا فقط
                 .shadow(color: Color.black.opacity(0.08), radius: 5, x: -2, y: 2)
                 .onTapGesture {
+                    print(user)
                         onTap(user)
                 }
             }
@@ -510,7 +516,12 @@ struct UserInfo: Codable {
         case relativesNumber = "relatives_number"
         case qualification
         case birthPlace = "birth_place"
-        case links, types, education, certifications, trainings, workExperience
+        case links
+        case types
+        case education
+        case certifications
+        case trainings
+        case workExperience
         case subscribed = "Subscribed"
         case employeeID = "employee_id"
     }
@@ -540,24 +551,77 @@ struct UserInfo: Codable {
         relativesNumber = try? container.decode(String.self, forKey: .relativesNumber)
         qualification = try? container.decode(String.self, forKey: .qualification)
         birthPlace = try? container.decode(String.self, forKey: .birthPlace)
-        types = try? container.decode([String].self, forKey: .types)
-        links = try? container.decode([UserLink].self, forKey: .links)
-        education = try? container.decode([Education].self, forKey: .education)
-        certifications = try? container.decode([Certification].self, forKey: .certifications)
-        trainings = try? container.decode([Training].self, forKey: .trainings)
-        workExperience = try? container.decode([WorkExperience].self, forKey: .workExperience)
-    }
+        
+        do {
+        types = try container.decode([String].self, forKey: .types)
+        }catch {
+        types = Self.decodeStringArray(forKey: .types, from: container)
+        }
+        
+        do {
+        links = try container.decode([UserLink].self, forKey: .links)
+        }catch {
+        links = Self.decodeJSONString(forKey: .links, from: container)
+        }
+        
+        do {
+        education = try container.decode([Education].self, forKey: .education)
+        } catch {
+        education = Self.decodeJSONString(forKey: .education, from: container)
+        }
+        do {
+        certifications = try container.decode([Certification].self, forKey: .certifications)
+        } catch {
+        certifications = Self.decodeJSONString(forKey: .certifications, from: container)
+        }
+        do {
+        trainings = try container.decode([Training].self, forKey: .trainings)
+        } catch {
+        trainings = Self.decodeJSONString(forKey: .trainings, from: container)
+        }
+        do {
+        workExperience = try container.decode([WorkExperience].self, forKey: .workExperience)
+        } catch {
+        workExperience = Self.decodeJSONString(forKey: .workExperience, from: container)
+        }
 
-    // دالة لتحويل القيم بين `String` و `Int`
-    private static func decodeIntOrString(forKey key: CodingKeys, from container: KeyedDecodingContainer<CodingKeys>) throws -> Int? {
-        if let intValue = try? container.decode(Int.self, forKey: key) {
-            return intValue
-        }
-        if let stringValue = try? container.decode(String.self, forKey: key), let intValue = Int(stringValue) {
-            return intValue
-        }
-        return nil
-    }
+     }
+
+     // دالة مساعدة لتفكيك المصفوفات من JSON string
+     private static func decodeJSONString<T: Codable>(forKey key: CodingKeys, from container: KeyedDecodingContainer<CodingKeys>) -> T? {
+         guard let jsonString = try? container.decode(String.self, forKey: key),
+               let jsonData = jsonString.data(using: .utf8) else {
+             return nil
+         }
+         
+         return try? JSONDecoder().decode(T.self, from: jsonData)
+     }
+     
+     // دالة مساعدة لتفكيك مصفوفة النصوص
+     private static func decodeStringArray(forKey key: CodingKeys, from container: KeyedDecodingContainer<CodingKeys>) -> [String]? {
+         if let stringArray = try? container.decode([String].self, forKey: key) {
+             return stringArray
+         }
+         // محاولة تفكيك من JSON string إذا كانت البيانات مخزنة كـ string
+         if let jsonString = try? container.decode(String.self, forKey: key),
+            let jsonData = jsonString.data(using: .utf8),
+            let stringArray = try? JSONDecoder().decode([String].self, from: jsonData) {
+             return stringArray
+         }
+         return nil
+     }
+     
+     // نفس الدالة السابقة لتحويل Int/String
+     private static func decodeIntOrString(forKey key: CodingKeys, from container: KeyedDecodingContainer<CodingKeys>) throws -> Int? {
+         if let intValue = try? container.decode(Int.self, forKey: key) {
+             return intValue
+         }
+         if let stringValue = try? container.decode(String.self, forKey: key),
+            let intValue = Int(stringValue) {
+             return intValue
+         }
+         return nil
+     }
 }
 
 
@@ -567,6 +631,7 @@ struct UserLink: Codable {
     var name: String
     var link: String
 }
+
 
 struct Education: Codable {
     var id: Int
@@ -805,23 +870,14 @@ class HomeViewCompanyViewModel: ObservableObject {
                        let resultArray = decryptedData["Result"] as? [[String: Any]] {
                         
                         let decoder = JSONDecoder()
+
                         do {
                             let jsonData = try JSONSerialization.data(withJSONObject: resultArray)
+                            
                             let users = try decoder.decode([UserInfo].self, from: jsonData)
-                            
-                            
-                            // Filter results based on search text
-                            let filteredUsers = users.filter { user in
-                                let searchLower = searchText.lowercased()
-                                return (user.fullName?.lowercased().contains(searchLower) ?? false) ||
-                                       (user.email?.lowercased().contains(searchLower) ?? false) ||
-                                       (user.occupation?.lowercased().contains(searchLower) ?? false) ||
-                                       (user.qualification?.lowercased().contains(searchLower) ?? false) ||
-                                       (user.country?.lowercased().contains(searchLower) ?? false)
-                            }
-                            
+
                             await MainActor.run {
-                                self.searchResults = filteredUsers
+                                self.searchResults = users
                             }
                         } catch {
                             await MainActor.run {
@@ -961,5 +1017,3 @@ class HomeViewCompanyViewModel: ObservableObject {
         }
     }
 }
-
-

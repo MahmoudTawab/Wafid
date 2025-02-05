@@ -28,12 +28,14 @@ struct UserDetailsView: View {
                     
                     // Content
                     TabView(selection: $selectedTab) {
-                        EducationView(user: user)
-                            .tag(0)
-                        WorkExperienceView(user: user)
-                            .tag(1)
-                        AnswersView(user: user)
-                            .tag(2)
+                            EducationView(user: user)
+                                .tag(0)
+                        
+                            WorkExperienceView(user: user)
+                                .tag(1)
+                        
+//                        AnswersView(user: user)
+//                            .tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                 }
@@ -81,11 +83,13 @@ struct HeaderView: View {
                 } label: {
                     Image("Frame 1396")
                         .resizable()
+                        .scaledToFit()
                         .frame(width: 40, height: 40)
                         .contentShape(Rectangle())
                 }
                 .padding(10)
-                .frame(width: 60, height: 60)
+                .offset(x: 30)
+                .frame(width: 100, height: 100)
                 
             }
             .padding(.horizontal)
@@ -250,7 +254,7 @@ struct ResumeButtonView: View {
 
 struct UserDetailsCustomTabBar: View {
     @Binding var selectedTab: Int
-    let tabs = ["Education", "Work experience", "Answers to questions"]
+    let tabs = ["Education", "Work experience"]
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -285,71 +289,96 @@ struct EducationView: View {
     let user: UserInfo
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 24) {
-                // Bachelor's Degree
-                EducationSection(
-                    title: "Bachelor's Degree",
-                    items: user.education?.flatMap { education in
-                        education.bachelorsDegree.map { degree in
-                            EducationItem(
-                                date: "December",
-                                year: "\(degree.universityGradeYear)",
+            if let education = user.education {
+                if user.education?.count != 0 {
+                    
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Bachelor's Degree
+                            EducationSection(
                                 title: "Bachelor's Degree",
-                                subtitle: "\(degree.university) - \(degree.faculty)"
+                                items: education.flatMap { education in
+                                    education.bachelorsDegree.map { degree in
+                                        EducationItem(
+                                            date: "December",
+                                            year: "\(degree.universityGradeYear)",
+                                            title: "Bachelor's Degree",
+                                            subtitle: "\(degree.university) - \(degree.faculty)"
+                                        )
+                                    }
+                                }
                             )
-                        }
-                    } ?? []
-                )
-                
-                // High School
-                EducationSection(
-                    title: "High School",
-                    items: user.education?.flatMap { education in
-                        education.highSchool.map { school in
-                            EducationItem(
-                                date: "December",
-                                year: "\(school.schoolGradeYear)",
+                            
+                            // High School
+                            EducationSection(
                                 title: "High School",
-                                subtitle: school.schoolName
+                                items: education.flatMap { education in
+                                    education.highSchool.map { school in
+                                        EducationItem(
+                                            date: "December",
+                                            year: "\(school.schoolGradeYear)",
+                                            title: "High School",
+                                            subtitle: school.schoolName
+                                        )
+                                    }
+                                }
                             )
+                            
+                            // Certifications
+                            if let certifications = user.certifications {
+                                EducationSection(
+                                    title: "Certifications",
+                                    items: certifications.map { cert in
+                                        EducationItem(
+                                            date: "December",
+                                            year: cert.date.prefix(4).description,
+                                            title: "Certifications",
+                                            subtitle: "\(cert.name) - \(cert.organization)"
+                                        )
+                                    }
+                                )
+                            }
+                            
+                            // Training & Courses
+                            if let trainings = user.trainings {
+                                EducationSection(
+                                    title: "Training & Courses",
+                                    items: trainings.map { training in
+                                        EducationItem(
+                                            date: "December",
+                                            year: training.date.prefix(4).description,
+                                            title: "Training & Courses",
+                                            subtitle: "\(training.name) - \(training.organization)"
+                                        )
+                                    }
+                                )
+                                .padding(.bottom , 30)
+                            }
                         }
-                    } ?? []
-                )
-                
-                // Certifications
-                if let certifications = user.certifications {
-                    EducationSection(
-                        title: "Certifications",
-                        items: certifications.map { cert in
-                            EducationItem(
-                                date: "December",
-                                year: cert.date.prefix(4).description,
-                                title: "Certifications",
-                                subtitle: "\(cert.name) - \(cert.organization)"
-                            )
-                        }
-                    )
+                        
+                        .padding(.horizontal)
+                    }
+                }else{
+                    VStack {
+                        Spacer()
+                        Text("There are no Education to show.")
+                            .multilineTextAlignment(.center)
+                            .font(.system(size: ControlWidth(16), weight: .medium))
+                            .foregroundColor(.gray)
+                        Spacer()
+                    }
                 }
-                
-                // Training & Courses
-                if let trainings = user.trainings {
-                    EducationSection(
-                        title: "Training & Courses",
-                        items: trainings.map { training in
-                            EducationItem(
-                                date: "December",
-                                year: training.date.prefix(4).description,
-                                title: "Training & Courses",
-                                subtitle: "\(training.name) - \(training.organization)"
-                            )
-                        }
-                    )
+            }else{
+                VStack {
+                    Spacer()
+                    Text("There are no Education to show.")
+                        .multilineTextAlignment(.center)
+                        .font(.system(size: ControlWidth(16), weight: .medium))
+                        .foregroundColor(.gray)
+                    Spacer()
                 }
             }
-            .padding(.horizontal)
-        }.padding(.bottom , 20)
-
+        
     }
 }
 
@@ -422,69 +451,85 @@ struct EducationItemView: View {
 
 struct WorkExperienceView: View {
     let user: UserInfo
-    
-    let dummyWorkExperience = [
-        WorkExperience(id: 1, jobTitle: "iOS Developer", jobDetails: "Developed and maintained iOS applications using Swift and SwiftUI.", startDate: "2020-01-01", endDate: "2022-12-31"),
-        WorkExperience(id: 2, jobTitle: "Software Engineer", jobDetails: "Worked on backend systems and APIs using Node.js and Python.", startDate: "2023-01-01", endDate: "Present"),
-        WorkExperience(id: 3, jobTitle: "Junior Developer", jobDetails: "Assisted in developing web applications using HTML, CSS, and JavaScript.", startDate: "2018-06-01", endDate: "2019-12-31")
-    ]
-    
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                ForEach(user.workExperience ?? dummyWorkExperience, id: \.id) { experience in
-                    HStack {
-                        Image("Group 1171279909")
-                            .resizable()
-                            .frame(width: 45, height: 45)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(experience.jobTitle)
-                                .fontWeight(.medium)
-                            Text("\(experience.startDate) - \(experience.endDate)")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+            if let workExperience = user.workExperience {
+                if user.workExperience?.count != 0 {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            ForEach(workExperience, id: \.id) { experience in
+                                HStack {
+                                    Image("Group 1171279909")
+                                        .resizable()
+                                        .frame(width: 45, height: 45)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(experience.jobTitle)
+                                            .fontWeight(.medium)
+                                        Text("\(experience.startDate) - \(experience.endDate)")
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
                         }
-                        
+                    }
+                }else{
+                    VStack {
+                        Spacer()
+                        Text("There are no Education to show.")
+                            .multilineTextAlignment(.center)
+                            .font(.system(size: ControlWidth(16), weight: .medium))
+                            .foregroundColor(.gray)
                         Spacer()
                     }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(12)
                 }
+            }else{
+                VStack {
+                Spacer()
+                Text("There are no work Experience to show.")
+                .multilineTextAlignment(.center)
+                .font(.system(size: ControlWidth(16), weight: .medium))
+                .foregroundColor(.gray)
+                Spacer()
             }
-            .padding(.horizontal)
         }
     }
 }
 
-struct AnswersView: View {
-    let user: UserInfo
-    
-    let dummyWorkExperience = [
-        WorkExperience(id: 1, jobTitle: "iOS Developer", jobDetails: "Developed and maintained iOS applications using Swift and SwiftUI.", startDate: "2020-01-01", endDate: "2022-12-31"),
-        WorkExperience(id: 2, jobTitle: "Software Engineer", jobDetails: "Worked on backend systems and APIs using Node.js and Python.", startDate: "2023-01-01", endDate: "Present"),
-        WorkExperience(id: 3, jobTitle: "Junior Developer", jobDetails: "Assisted in developing web applications using HTML, CSS, and JavaScript.", startDate: "2018-06-01", endDate: "2019-12-31")
-    ]
-    
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                ForEach(user.workExperience ?? dummyWorkExperience, id: \.id) { experience in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("How many experience do you have?")
-                            .fontWeight(.medium)
-
-                        Text("\(experience.startDate) - \(experience.endDate) Years")
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.white)
-                            .cornerRadius(8)
-                    }
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-}
-
+//struct AnswersView: View {
+//    let user: UserInfo
+//    
+//    let dummyWorkExperience = [
+//        WorkExperience(id: 1, jobTitle: "iOS Developer", jobDetails: "Developed and maintained iOS applications using Swift and SwiftUI.", startDate: "2020-01-01", endDate: "2022-12-31"),
+//        WorkExperience(id: 2, jobTitle: "Software Engineer", jobDetails: "Worked on backend systems and APIs using Node.js and Python.", startDate: "2023-01-01", endDate: "Present"),
+//        WorkExperience(id: 3, jobTitle: "Junior Developer", jobDetails: "Assisted in developing web applications using HTML, CSS, and JavaScript.", startDate: "2018-06-01", endDate: "2019-12-31")
+//    ]
+//    
+//    var body: some View {
+//        ScrollView {
+//            VStack(spacing: 16) {
+//                ForEach(user.workExperience ?? dummyWorkExperience, id: \.id) { experience in
+//                    VStack(alignment: .leading, spacing: 8) {
+//                        Text("How many experience do you have?")
+//                            .fontWeight(.medium)
+//
+//                        Text("\(experience.startDate) - \(experience.endDate) Years")
+//                            .padding()
+//                            .frame(maxWidth: .infinity, alignment: .leading)
+//                            .background(Color.white)
+//                            .cornerRadius(8)
+//                    }
+//                }
+//            }
+//            .padding(.horizontal)
+//        }
+//    }
+//}
+//
